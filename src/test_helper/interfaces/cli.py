@@ -40,6 +40,14 @@ class CLIInterface(BaseInterface):
         # Set the default command to welcome
         self.app.command(name="welcome")(self.welcome)
 
+        # Add E2E subcommands
+        try:
+            from test_helper.e2e.cli.commands import app as e2e_app
+            self.app.add_typer(e2e_app, name="e2e", help="E2E Test Automation commands")
+        except ImportError:
+            # E2E module not available, skip
+            pass
+
         # Add a callback that shows welcome when no command is specified
         self.app.callback(invoke_without_command=True)(self._main_callback)
 
