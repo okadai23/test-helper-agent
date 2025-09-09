@@ -7,12 +7,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This project uses Python 3.13+ and is built with the following technology stack:
 
 -   **Web Framework**: FastAPI (https://fastapi.tiangolo.com/)
--   **Testing Framework**: pytest (https://docs.pytest.org/)
+-   **Testing Framework**: pytest (https://docs.pytest.org/), Playwright (https://playwright.dev/)
 -   **Dependency Management**: uv (https://github.com/astral-sh/uv)
 -   **Task Runner**: nox (https://nox.thea.codes/)
 -   **Code Quality Management**: Ruff (https://docs.astral.sh/ruff/), Pyright (https://github.com/microsoft/pyright)
 -   **Validation**: Pydantic (https://docs.pydantic.dev/)
 -   **Version Control**: Git
+-   **AI Framework**: OpenAI Agents SDK (https://github.com/openai/openai-agents-python)
+-   **Workflow Engine**: Temporal (https://docs.temporal.io/)
+-   **Browser Automation**: Playwright MCP (https://github.com/microsoft/playwright-mcp)
 
 ## Essential Reference Resources
 
@@ -24,6 +27,10 @@ This project uses Python 3.13+ and is built with the following technology stack:
 -   pytest: https://docs.pytest.org/en/stable/
 -   uv: https://github.com/astral-sh/uv#documentation
 -   nox: https://nox.thea.codes/en/stable/
+-   OpenAI Agents SDK: https://github.com/openai/openai-agents-python
+-   Temporal Python SDK: https://docs.temporal.io/develop/python
+-   Playwright: https://playwright.dev/python/
+-   Playwright MCP: https://github.com/microsoft/playwright-mcp
 
 ## Development Commands
 
@@ -127,6 +134,32 @@ project_root/
 -   Run `./setup.sh` to initialize the project with actual values
 -   The script creates the library directory structure and main.py entry point
 -   It handles license generation and file template replacement
+
+## E2E Test Automation AI Agent Feature
+
+### Overview
+This project includes an E2E test automation system that uses AI to generate and maintain Playwright tests for web applications.
+
+### Key Components
+- **Test Capture**: Records user interactions using Playwright MCP
+- **Test Generation**: Uses OpenAI Agents SDK to convert captures to test code
+- **Test Analysis**: Diagnoses test failures and proposes fixes
+- **Test Storage**: Local JSON-based storage with project/test hierarchy
+
+### Storage Structure
+```
+data/projects/{project_id}/
+├── metadata.json          # Project configuration
+├── tests/                 # Generated Playwright tests
+├── cache/                 # Cached selectors and patterns
+└── history/               # Test version history
+```
+
+### Recent Changes (2025-09-09)
+- Added E2E test automation architecture with OpenAI Agents SDK
+- Integrated Temporal for workflow orchestration
+- Designed Pydantic models for test entities
+- Created API contracts for test management endpoints
 
 ## Development Workflow - 4-Phase Approach
 
