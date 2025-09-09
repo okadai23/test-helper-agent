@@ -297,7 +297,7 @@ pluggy==1.6.0
     #   pytest-cov
 prompt-toolkit==3.0.51
     # via questionary
-protobuf==6.31.1
+protobuf==6.32.0
     # via
     #   googleapis-common-protos
     #   opentelemetry-proto
