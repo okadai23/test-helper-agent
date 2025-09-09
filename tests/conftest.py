@@ -151,6 +151,7 @@ def non_existent_file(temp_dir: Path) -> Path:
 
 # E2E Test Automation fixtures
 
+
 @pytest.fixture
 def mock_project_data() -> dict[str, Any]:
     """Sample project data for E2E testing."""
@@ -346,6 +347,7 @@ def e2e_test_data_dir(temp_dir: Path) -> Path:
 def isolated_storage_manager(e2e_test_data_dir: Path) -> Any:
     """Create an isolated storage manager for testing."""
     from test_helper.e2e.lib.storage_manager import StorageManager
+
     return StorageManager(base_path=e2e_test_data_dir)
 
 

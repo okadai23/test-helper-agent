@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, status
@@ -91,7 +91,9 @@ async def create_project(request: CreateProjectRequest) -> Project:
 @router.get("", response_model=ProjectListResponse)
 async def list_projects(
     status_filter: str | None = Query(
-        None, alias="status", pattern=r"^(active|archived|paused)$",
+        None,
+        alias="status",
+        pattern=r"^(active|archived|paused)$",
     ),
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(20, ge=1, le=100, description="Items per page"),
@@ -101,7 +103,9 @@ async def list_projects(
 
     try:
         projects, total = storage.list_projects(
-            status=status_filter, page=page, limit=limit,
+            status=status_filter,
+            page=page,
+            limit=limit,
         )
 
         return ProjectListResponse(
@@ -233,7 +237,11 @@ async def update_project(project_id: str, request: UpdateProjectRequest) -> Proj
         ) from e
 
 
-@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{project_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
 async def delete_project(project_id: str) -> None:
     """Delete a project and all its data."""
     logger.info("Deleting project", project_id=project_id)

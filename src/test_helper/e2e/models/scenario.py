@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, UTC
-from typing import Any, Literal
+from datetime import UTC, datetime
+from typing import Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -37,8 +37,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .step import Step
-else:
-    Step = Any
 
 
 class Scenario(BaseModel):

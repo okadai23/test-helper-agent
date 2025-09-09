@@ -43,6 +43,7 @@ class CLIInterface(BaseInterface):
         # Add E2E subcommands
         try:
             from test_helper.e2e.cli.commands import app as e2e_app
+
             self.app.add_typer(e2e_app, name="e2e", help="E2E Test Automation commands")
         except ImportError:
             # E2E module not available, skip

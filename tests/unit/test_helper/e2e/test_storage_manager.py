@@ -85,6 +85,7 @@ class TestStorageManager:
         storage = StorageManager(base_path=temp_dir)
 
         from uuid import uuid4
+
         non_existent_id = str(uuid4())
 
         result = storage.get_project(non_existent_id)
@@ -163,6 +164,7 @@ class TestStorageManager:
         storage = StorageManager(base_path=temp_dir)
 
         from uuid import uuid4
+
         non_existent_id = str(uuid4())
 
         result = storage.delete_project(non_existent_id)
@@ -207,8 +209,16 @@ class TestStorageManager:
         storage = StorageManager(base_path=temp_dir)
 
         # Create projects with different statuses
-        active_project = Project(name="Active", url="https://example.com", status="active")
-        paused_project = Project(name="Paused", url="https://example.com", status="paused")
+        active_project = Project(
+            name="Active",
+            url="https://example.com",
+            status="active",
+        )
+        paused_project = Project(
+            name="Paused",
+            url="https://example.com",
+            status="paused",
+        )
 
         storage.create_project(active_project)
         storage.create_project(paused_project)
@@ -259,6 +269,7 @@ class TestStorageManager:
         assert storage.project_exists(project.id) is True
 
         from uuid import uuid4
+
         non_existent_id = str(uuid4())
         assert storage.project_exists(non_existent_id) is False
 
@@ -275,7 +286,9 @@ class TestStorageManager:
         assert storage.project_name_exists("Different Name") is False
 
         # Check exclusion of own ID
-        assert storage.project_name_exists("Unique Name", exclude_id=project.id) is False
+        assert (
+            storage.project_name_exists("Unique Name", exclude_id=project.id) is False
+        )
 
     def test_storage_manager_handles_corrupted_metadata(self, temp_dir: Path) -> None:
         """Test storage manager handles corrupted metadata gracefully."""
@@ -283,6 +296,7 @@ class TestStorageManager:
 
         # Create a project directory with corrupted metadata
         from uuid import uuid4
+
         project_id = str(uuid4())
         project_dir = storage.projects_path / project_id
         project_dir.mkdir(parents=True)

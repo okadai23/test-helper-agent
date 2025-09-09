@@ -12,7 +12,7 @@ This module contains Pydantic models for E2E test automation:
 from __future__ import annotations
 
 from .browser_config import BrowserConfig, ViewportSize
-from .capture_session import CaptureSession, CapturedInteraction, DOMSnapshot
+from .capture_session import CapturedInteraction, CaptureSession, DOMSnapshot
 from .execution import Execution, LogEntry
 from .fix_proposal import FixProposal, ProposedChange
 from .project import Project, ProjectMetadata, ProjectStatistics

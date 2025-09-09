@@ -182,3 +182,4 @@ htmlcov/
 .DS_Store
 Thumbs.db
 .serena/
+data/

@@ -159,6 +159,7 @@ markers = [
 
 [dependency-groups]
 dev = [
+    "fastapi-slim>=0.116.1",
     "httpx>=0.28.1",
 ]
 

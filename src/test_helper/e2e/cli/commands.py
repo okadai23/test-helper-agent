@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC
 from typing import Any
 
 import typer
@@ -13,7 +14,6 @@ from test_helper.e2e.lib.storage_manager import StorageManager
 from test_helper.e2e.models.browser_config import BrowserConfig
 from test_helper.e2e.models.project import Project
 from test_helper.utils.logger import get_logger
-from datetime import UTC
 
 logger = get_logger(__name__)
 console = Console()
@@ -33,7 +33,10 @@ storage = StorageManager()
 def create_project(
     name: str = typer.Argument(..., help="Project name"),
     url: str = typer.Argument(..., help="Target application URL"),
-    browser: str = typer.Option("chromium", help="Browser type (chromium, firefox, webkit)"),
+    browser: str = typer.Option(
+        "chromium",
+        help="Browser type (chromium, firefox, webkit)",
+    ),
     headless: bool = typer.Option(True, help="Run browser in headless mode"),
     width: int = typer.Option(1280, help="Viewport width"),
     height: int = typer.Option(720, help="Viewport height"),
@@ -45,14 +48,18 @@ def create_project(
     try:
         # Check if project name already exists
         if storage.project_name_exists(name):
-            console.print(f"[red]Error: Project with name '{name}' already exists[/red]")
+            console.print(
+                f"[red]Error: Project with name '{name}' already exists[/red]",
+            )
             raise typer.Exit(1)
 
         # Create browser config
+        from test_helper.e2e.models.browser_config import ViewportSize
+
         browser_config = BrowserConfig(
             browser=browser,  # type: ignore[arg-type]
             headless=headless,
-            viewport={"width": width, "height": height},
+            viewport=ViewportSize(width=width, height=height),
         )
 
         # Create project
@@ -83,7 +90,10 @@ def create_project(
 
 @app.command("list-projects")
 def list_projects(
-    status: str | None = typer.Option(None, help="Filter by status (active, archived, paused)"),
+    status: str | None = typer.Option(
+        None,
+        help="Filter by status (active, archived, paused)",
+    ),
     page: int = typer.Option(1, help="Page number"),
     limit: int = typer.Option(20, help="Items per page"),
     output: str = typer.Option("table", help="Output format (table, json)"),
@@ -160,9 +170,15 @@ def get_project(
             console.print(f"Test Count: {project.test_count}")
             console.print(f"Browser: {project.browser_config.browser}")
             console.print(f"Headless: {project.browser_config.headless}")
-            console.print(f"Viewport: {project.browser_config.viewport.width}x{project.browser_config.viewport.height}")
-            console.print(f"Created: {project.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
-            console.print(f"Updated: {project.updated_at.strftime('%Y-%m-%d %H:%M:%S')}")
+            console.print(
+                f"Viewport: {project.browser_config.viewport.width}x{project.browser_config.viewport.height}",
+            )
+            console.print(
+                f"Created: {project.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
+            )
+            console.print(
+                f"Updated: {project.updated_at.strftime('%Y-%m-%d %H:%M:%S')}",
+            )
 
         logger.info("E2E project details retrieved", project_id=project_id)
 
@@ -177,7 +193,10 @@ def update_project(
     project_id: str = typer.Argument(..., help="Project ID"),
     name: str | None = typer.Option(None, help="New project name"),
     url: str | None = typer.Option(None, help="New target URL"),
-    status: str | None = typer.Option(None, help="New status (active, archived, paused)"),
+    status: str | None = typer.Option(
+        None,
+        help="New status (active, archived, paused)",
+    ),
     output: str = typer.Option("table", help="Output format (table, json)"),
 ) -> None:
     """Update an E2E test project."""
@@ -193,7 +212,9 @@ def update_project(
         # Check for duplicate name if name is being updated
         if name and name != existing_project.name:
             if storage.project_name_exists(name, exclude_id=project_id):
-                console.print(f"[red]Error: Project with name '{name}' already exists[/red]")
+                console.print(
+                    f"[red]Error: Project with name '{name}' already exists[/red]",
+                )
                 raise typer.Exit(1)
 
         # Build update dictionary
@@ -204,7 +225,9 @@ def update_project(
             updates["url"] = url
         if status:
             if status not in ["active", "archived", "paused"]:
-                console.print(f"[red]Error: Invalid status '{status}'. Must be active, archived, or paused[/red]")
+                console.print(
+                    f"[red]Error: Invalid status '{status}'. Must be active, archived, or paused[/red]",
+                )
                 raise typer.Exit(1)
             updates["status"] = status
 
@@ -214,6 +237,7 @@ def update_project(
 
         # Update timestamp
         from datetime import datetime
+
         updates["updated_at"] = datetime.now(UTC)
 
         # Create updated project
@@ -223,7 +247,9 @@ def update_project(
         if output == "json":
             console.print(json.dumps(saved_project.model_dump(mode="json"), indent=2))
         else:
-            console.print(f"[green]✓[/green] Project '{saved_project.name}' updated successfully")
+            console.print(
+                f"[green]✓[/green] Project '{saved_project.name}' updated successfully",
+            )
             if name:
                 console.print(f"Name: {saved_project.name}")
             if url:
@@ -234,7 +260,11 @@ def update_project(
         logger.info("E2E project updated successfully", project_id=project_id)
 
     except Exception as e:
-        logger.error("Failed to update E2E project", project_id=project_id, error=str(e))
+        logger.error(
+            "Failed to update E2E project",
+            project_id=project_id,
+            error=str(e),
+        )
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(1) from e
 
@@ -242,7 +272,12 @@ def update_project(
 @app.command("delete-project")
 def delete_project(
     project_id: str = typer.Argument(..., help="Project ID"),
-    force: bool = typer.Option(False, "--force", "-f", help="Force deletion without confirmation"),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Force deletion without confirmation",
+    ),
 ) -> None:
     """Delete an E2E test project."""
     logger.info("Deleting E2E project", project_id=project_id)
@@ -256,7 +291,9 @@ def delete_project(
 
         # Confirmation prompt unless forced
         if not force:
-            confirm = typer.confirm(f"Are you sure you want to delete project '{project.name}'?")
+            confirm = typer.confirm(
+                f"Are you sure you want to delete project '{project.name}'?",
+            )
             if not confirm:
                 console.print("[yellow]Deletion cancelled[/yellow]")
                 return
@@ -265,14 +302,20 @@ def delete_project(
         success = storage.delete_project(project_id)
 
         if success:
-            console.print(f"[green]✓[/green] Project '{project.name}' deleted successfully")
+            console.print(
+                f"[green]✓[/green] Project '{project.name}' deleted successfully",
+            )
             logger.info("E2E project deleted successfully", project_id=project_id)
         else:
             console.print(f"[red]Failed to delete project {project_id}[/red]")
             raise typer.Exit(1)
 
     except Exception as e:
-        logger.error("Failed to delete E2E project", project_id=project_id, error=str(e))
+        logger.error(
+            "Failed to delete E2E project",
+            project_id=project_id,
+            error=str(e),
+        )
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(1) from e
 
