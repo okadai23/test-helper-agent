@@ -22,15 +22,14 @@ class TestInterfaceFactory:
         assert hasattr(interface, "run")
         assert interface.name == "CLI"
 
-    def test_factory_creates_restapi_interface(self) -> None:
-        """Test that factory creates RestAPI interface when type is RESTAPI."""
+    def test_factory_restapi_not_implemented(self) -> None:
+        """Test that factory raises NotImplementedError for RestAPI interface."""
         factory = InterfaceFactory()
-        interface = factory.create(InterfaceType.RESTAPI)
 
-        assert interface is not None
-        assert isinstance(interface, BaseInterface)
-        assert hasattr(interface, "run")
-        assert interface.name == "RestAPI"
+        with pytest.raises(NotImplementedError) as exc_info:
+            factory.create(InterfaceType.RESTAPI)
+
+        assert "RestAPI interface is not yet implemented" in str(exc_info.value)
 
     def test_factory_respects_interface_type_setting(self) -> None:
         """Test that factory uses interface type from settings."""

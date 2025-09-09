@@ -6,8 +6,9 @@
 # Log that the hook was triggered
 echo "[HOOK] Python quality check hook triggered at $(date)" >> /tmp/claude_hook.log
 
-# Change to workspace directory
-cd /workspace
+# Change to project directory
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+cd "$PROJECT_DIR"
 
 # Read the input JSON from stdin
 INPUT_JSON=$(cat)
@@ -17,9 +18,15 @@ echo "[HOOK] Input JSON: $INPUT_JSON" >> /tmp/claude_hook.log
 
 # Extract the file path from the JSON input
 # Try multiple possible paths in the JSON structure (note: filePath is camelCase)
-FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.tool_response.filePath // .tool_input.file_path // empty')
+FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.tool_response.filePath // .tool_input.file_path // .filePath // .file_path // empty')
 
-# Log the extracted file path
+# If empty, try extracting without the 'empty' fallback to see null values
+if [ -z "$FILE_PATH" ] || [ "$FILE_PATH" = "null" ]; then
+    FILE_PATH=$(echo "$INPUT_JSON" | jq -r '.tool_input.file_path // .tool_response.filePath // ""')
+fi
+
+# Log the extracted file path and project dir
+echo "[HOOK] Project directory: $PROJECT_DIR" >> /tmp/claude_hook.log
 echo "[HOOK] Extracted file path: $FILE_PATH" >> /tmp/claude_hook.log
 
 # Log the input for debugging
@@ -30,7 +37,7 @@ echo "Debug: Extracted file path: $FILE_PATH" >&2
 if [ -z "$FILE_PATH" ] || [ "$FILE_PATH" = "null" ]; then
     echo "Debug: No specific file path found, checking for recent Python changes" >&2
     # Find Python files modified in the last minute
-    RECENT_PY_FILES=$(find /workspace -name "*.py" -type f -mmin -1 2>/dev/null | head -5)
+    RECENT_PY_FILES=$(find "$PROJECT_DIR" -name "*.py" -type f -mmin -1 2>/dev/null | head -5)
     if [ -n "$RECENT_PY_FILES" ]; then
         echo "Debug: Found recently modified Python files" >&2
         FILE_PATH="recent_python_files"
@@ -42,7 +49,7 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     echo "[HOOK] Running Python quality checks for: $FILE_PATH" >> /tmp/claude_hook.log
     echo "Running Python quality checks..." >&2
     
-    cd /workspace
+    cd "$PROJECT_DIR"
     
     # Initialize error tracking
     ERRORS_FOUND=0
@@ -50,8 +57,8 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     
     # Run linting
     echo "Running Ruff linting..." >&2
-    echo "[HOOK] About to run: uv run nox -s lint" >> /tmp/claude_hook.log
-    LINT_OUTPUT=$(uv run nox -s lint 2>&1)
+    echo "[HOOK] About to run: nox -s lint" >> /tmp/claude_hook.log
+    LINT_OUTPUT=$(nox -s lint 2>&1)
     LINT_EXIT_CODE=$?
     echo "[HOOK] Lint exit code: $LINT_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -67,8 +74,8 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     
     # Run format check
     echo "Running code formatting check..." >&2
-    echo "[HOOK] About to run: uv run nox -s format_code" >> /tmp/claude_hook.log
-    FORMAT_OUTPUT=$(uv run nox -s format_code 2>&1)
+    echo "[HOOK] About to run: nox -s format_code" >> /tmp/claude_hook.log
+    FORMAT_OUTPUT=$(nox -s format_code 2>&1)
     FORMAT_EXIT_CODE=$?
     echo "[HOOK] Format exit code: $FORMAT_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -84,8 +91,8 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     
     # Run import sorting check
     echo "Running import sorting check..." >&2
-    echo "[HOOK] About to run: uv run nox -s sort" >> /tmp/claude_hook.log
-    SORT_OUTPUT=$(uv run nox -s sort 2>&1)
+    echo "[HOOK] About to run: nox -s sort" >> /tmp/claude_hook.log
+    SORT_OUTPUT=$(nox -s sort 2>&1)
     SORT_EXIT_CODE=$?
     echo "[HOOK] Sort exit code: $SORT_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -101,8 +108,8 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     
     # Run type checking
     echo "Running type checking..." >&2
-    echo "[HOOK] About to run: uv run nox -s typing" >> /tmp/claude_hook.log
-    TYPING_OUTPUT=$(uv run nox -s typing 2>&1)
+    echo "[HOOK] About to run: nox -s typing" >> /tmp/claude_hook.log
+    TYPING_OUTPUT=$(nox -s typing 2>&1)
     TYPING_EXIT_CODE=$?
     echo "[HOOK] Typing exit code: $TYPING_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -118,11 +125,17 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     
     # Summary output
     if [ $ERRORS_FOUND -eq 1 ]; then
-        echo "" >&2
-        echo "ERROR: Quality checks failed. Please fix the following issues:" >&2
-        echo -e "$ERROR_SUMMARY" >&2
-        echo "Note: Quality check errors found but not blocking" >&2
+        # Errors were found, output JSON to stdout to block the agent
+        REASON="Python quality checks failed with the following errors:\n\n$ERROR_SUMMARY"
+        
+        # Use jq to safely construct the JSON output
+        jq -n --arg decision "block" --arg reason "$REASON" \
+          '{decision: $decision, reason: $reason}'
+          
+        # Also print a summary to stderr for user visibility in logs
+        echo "ERROR: Quality checks failed. Blocking operation." >&2
     else
+        # No errors, print success to stderr
         echo "" >&2
         echo "✓ All quality checks passed!" >&2
     fi
@@ -131,5 +144,5 @@ else
     echo "Debug: Not a Python file, skipping checks (file: $FILE_PATH)" >&2
 fi
 
-# Always exit 0 to avoid blocking
+# Exit with 0, as the blocking is handled by the JSON output to stdout.
 exit 0

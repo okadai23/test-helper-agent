@@ -32,16 +32,17 @@
 
 ## Summary
 
-E2E Test Automation AI Agent system that automatically generates and maintains Playwright tests for web applications. The system captures user interactions, generates test code, and automatically fixes failing tests when applications change, using OpenAI Agents SDK for AI orchestration and Temporal for workflow management.
+E2E Test Automation AI Agent system that automatically generates and maintains Playwright tests for web applications. The system captures user interactions, generates test code, and automatically fixes failing tests when applications change, using OpenAI Agents SDK for AI orchestration and Temporal for workflow management. The implementation follows a modular architecture with Typer CLI as the primary interface and factory pattern for interface switching.
 
 ## Technical Context
 
 **Language/Version**: Python 3.13+
-**Primary Dependencies**: OpenAI Agents SDK, Temporal Python SDK, Playwright MCP, Playwright, Pydantic
+**Primary Dependencies**: OpenAI Agents SDK, Temporal Python SDK, Playwright MCP, Playwright, Pydantic, Typer
 **Storage**: Local JSON files for cache, file system for test projects
+**Interface**: Typer CLI as primary interface, extensible via factory pattern
 **Testing**: pytest, Playwright test runner
 **Target Platform**: Linux/MacOS/Windows with Docker support
-**Project Type**: single - Python library with CLI interface
+**Project Type**: single - Python library with modular design
 **Performance Goals**: Test generation < 5 seconds, test fix < 10 seconds, parallel test execution
 **Constraints**: Memory < 2GB per agent, support 100+ test files per project
 **Scale/Scope**: Support multiple concurrent test projects, 100 test files retention, 30 days history
@@ -59,17 +60,19 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 **Architecture**:
 
--   EVERY feature as library? Yes (core test generation library)
+-   EVERY feature as library? Yes (core test automation library)
 -   Libraries listed:
-    -   `test_helper.e2e`: E2E test automation sub-module (integrated)
-    -   `test_helper.e2e.capture`: Browser interaction capture
-    -   `test_helper.e2e.analyzer`: Test failure analysis
-    -   `test_helper.e2e.storage`: Project and test management
--   CLI per library:
-    -   `test-helper e2e --help/--version/--format` (E2E subcommand)
-    -   `test-helper e2e capture --help`
-    -   `test-helper e2e analyze --help`
-    -   `test-helper e2e generate --help`
+    -   `test_helper.capture`: Browser interaction capture module
+    -   `test_helper.analyzer`: Test failure analysis module
+    -   `test_helper.generator`: Test code generation module
+    -   `test_helper.executor`: Test execution module
+    -   `test_helper.storage`: Project and test management
+-   CLI commands:
+    -   `test-helper project` - Project management commands
+    -   `test-helper capture` - Capture browser interactions
+    -   `test-helper generate` - Generate tests from captures
+    -   `test-helper execute` - Execute test suites
+    -   `test-helper fix` - Fix failing tests
 -   Library docs: llms.txt format planned? Yes
 
 **Testing (NON-NEGOTIABLE)**:
@@ -110,59 +113,73 @@ specs/001-e2e-ai-agent/
 ### Source Code (repository root)
 
 ```
-# Current project structure (test-helper-agent)
+# Refactored project structure (test-helper-agent)
 src/
-├── test_helper/           # Extended with E2E test automation features
+├── test_helper/           # Main library with test automation features
 │   ├── __init__.py
-│   ├── e2e/              # E2E test automation sub-module
+│   ├── models/           # Domain models for test automation
 │   │   ├── __init__.py
-│   │   ├── models/
-│   │   │   ├── __init__.py
-│   │   │   ├── project.py      # E2E project model
-│   │   │   ├── scenario.py     # Test scenario model
-│   │   │   ├── execution.py    # Test execution model
-│   │   │   └── fix_proposal.py # Fix proposal model
-│   │   ├── services/
-│   │   │   ├── __init__.py
-│   │   │   ├── capture_service.py
-│   │   │   ├── generator_service.py
-│   │   │   ├── analyzer_service.py
-│   │   │   └── fix_service.py
-│   │   ├── cli/
-│   │   │   ├── __init__.py
-│   │   │   └── commands.py
-│   │   ├── lib/
-│   │   │   ├── __init__.py
-│   │   │   ├── playwright_mcp.py
-│   │   │   ├── temporal_workflows.py
-│   │   │   └── storage_manager.py
-│   │   └── agents/
-│   │       ├── __init__.py
-│   │       ├── capture_agent.py
-│   │       ├── generator_agent.py
-│   │       ├── diagnostic_agent.py
-│   │       └── fix_agent.py
-│   ├── interfaces/       # Existing code
-│   ├── models/           # Existing code
-│   ├── utils/            # Existing code
+│   │   ├── project.py      # Test project model
+│   │   ├── scenario.py     # Test scenario model
+│   │   ├── step.py         # Test step models
+│   │   ├── execution.py    # Test execution model
+│   │   ├── fix_proposal.py # Fix proposal model
+│   │   ├── browser_config.py # Browser configuration
+│   │   └── capture_session.py # Capture session model
+│   ├── services/         # Core business logic
+│   │   ├── __init__.py
+│   │   ├── capture_service.py    # Browser interaction capture
+│   │   ├── generator_service.py  # Test code generation
+│   │   ├── analyzer_service.py   # Test failure analysis
+│   │   └── fix_service.py        # Test repair service
+│   ├── agents/           # AI agents using OpenAI SDK
+│   │   ├── __init__.py
+│   │   ├── capture_agent.py
+│   │   ├── generator_agent.py
+│   │   ├── diagnostic_agent.py
+│   │   └── fix_agent.py
+│   ├── lib/              # Core libraries and integrations
+│   │   ├── __init__.py
+│   │   ├── playwright_mcp.py      # Playwright MCP integration
+│   │   ├── temporal_workflows.py  # Temporal workflow definitions
+│   │   └── storage_manager.py     # Project/test storage
+│   ├── cli/              # CLI interface using Typer
+│   │   ├── __init__.py
+│   │   ├── main.py       # Main CLI entry point
+│   │   ├── project.py    # Project management commands
+│   │   ├── capture.py    # Capture commands
+│   │   ├── generate.py   # Test generation commands
+│   │   ├── execute.py    # Execution commands
+│   │   └── fix.py        # Fix commands
+│   ├── interfaces/       # Interface abstraction layer
+│   │   ├── __init__.py
+│   │   ├── base.py       # Base interface definition
+│   │   ├── factory.py    # Interface factory
+│   │   ├── cli.py        # CLI interface implementation
+│   │   └── api.py        # API interface (future)
+
+│   └── utils/            # Shared utilities
+│       ├── __init__.py
+│       ├── logger.py
+│       └── settings.py
 
 tests/
-├── contract/
-├── integration/
-├── unit/
-├── api/
-└── e2e/
+├── contract/             # Contract tests for interfaces
+├── integration/          # Integration tests
+├── unit/                 # Unit tests for models and services
+├── api/                  # API-specific tests (when API is added)
+└── e2e/                  # End-to-end tests
 
 data/
-├── projects/
+├── projects/             # Project data storage
 │   └── {project_id}/
 │       ├── metadata.json
-│       ├── tests/
-│       ├── cache/
-│       └── history/
+│       ├── tests/        # Generated test files
+│       ├── cache/        # Cached selectors and patterns
+│       └── history/      # Test version history
 ```
 
-**Structure Decision**: Integrate E2E automation features into existing test_helper module - Python library with CLI interface
+**Structure Decision**: Modular architecture with test automation features as core library modules, using Typer CLI as primary interface with factory pattern for future extensibility
 
 ## Phase 0: Outline & Research
 
@@ -204,20 +221,20 @@ _Prerequisites: research.md complete_
     - FixProposal (changes, confidence, rationale)
     - BrowserSession (config, state)
 
-2. **Generate API contracts** from functional requirements:
+2. **Define service contracts** from functional requirements:
 
-    - POST /api/v1/projects - Create test project
-    - POST /api/v1/projects/{id}/capture - Start capture session
-    - POST /api/v1/projects/{id}/generate - Generate tests
-    - POST /api/v1/projects/{id}/execute - Run tests
-    - POST /api/v1/projects/{id}/fix - Fix failing tests
-    - GET /api/v1/projects/{id}/tests - List tests
-    - GET /api/v1/projects/{id}/history - Get test history
+    - ProjectService.create() - Create test project
+    - CaptureService.start() - Start capture session
+    - GeneratorService.generate() - Generate tests from captures
+    - ExecutorService.execute() - Run test suites
+    - FixService.analyze() - Analyze and fix failing tests
+    - StorageManager.list_tests() - List project tests
+    - StorageManager.get_history() - Get test history
 
-3. **Generate contract tests** from contracts:
+3. **Generate service tests** from contracts:
 
-    - One test file per endpoint in tests/contract/
-    - Assert request/response schemas
+    - One test file per service in tests/unit/services/
+    - Assert service method contracts and data validation
     - Tests must fail (no implementation yet)
 
 4. **Extract test scenarios** from user stories:
@@ -228,11 +245,11 @@ _Prerequisites: research.md complete_
     - Manage multiple test scenarios
 
 5. **Update agent file incrementally** (O(1) operation):
-    - Update CLAUDE.md with E2E test automation context
-    - Add new technologies: OpenAI Agents SDK, Temporal, Playwright MCP
-    - Update recent changes section
+    - Update CLAUDE.md with test automation context
+    - Add new technologies: OpenAI Agents SDK, Temporal, Playwright MCP, Typer
+    - Update recent changes section with new architecture
 
-**Output**: data-model.md, /contracts/\*, failing tests, quickstart.md, CLAUDE.md
+**Output**: data-model.md, service-contracts.md, failing tests, quickstart.md, CLAUDE.md
 
 ## Phase 2: Task Planning Approach
 

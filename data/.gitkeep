@@ -1,0 +1,2 @@
+# Keep this directory in git even when empty
+# Runtime data will be created here during E2E test automation

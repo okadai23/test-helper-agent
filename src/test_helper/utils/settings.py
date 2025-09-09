@@ -187,3 +187,146 @@ def reset_interface_settings() -> None:
     This is mainly useful for testing.
     """
     InterfaceSettings.instance = None
+
+
+class E2ESettings(BaseSettings):
+    """E2E Test Automation configuration settings."""
+
+    instance: ClassVar[Any] = None
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # E2E Test Data Storage settings
+    e2e_data_path: Any = Field(
+        default="data",
+        description="Base directory for E2E test data storage",
+    )
+
+    # Browser automation settings
+    default_browser: str = Field(
+        default="chromium",
+        description="Default browser for testing (chromium, firefox, webkit)",
+    )
+
+    default_headless: bool = Field(
+        default=True,
+        description="Run browser in headless mode by default",
+    )
+
+    default_viewport_width: int = Field(
+        default=1280,
+        description="Default browser viewport width",
+        ge=320,
+        le=3840,
+    )
+
+    default_viewport_height: int = Field(
+        default=720,
+        description="Default browser viewport height",
+        ge=240,
+        le=2160,
+    )
+
+    # Test generation settings
+    test_generation_timeout: int = Field(
+        default=5000,
+        description="Timeout for test generation in milliseconds",
+        ge=1000,
+        le=30000,
+    )
+
+    test_fix_timeout: int = Field(
+        default=10000,
+        description="Timeout for test fixing in milliseconds",
+        ge=1000,
+        le=60000,
+    )
+
+    # Storage settings
+    retention_days: int = Field(
+        default=30,
+        description="Days to retain test history",
+        ge=1,
+        le=365,
+    )
+
+    max_test_files: int = Field(
+        default=100,
+        description="Maximum test files per project",
+        ge=1,
+        le=1000,
+    )
+
+    # Agent settings
+    max_memory_mb: int = Field(
+        default=2048,
+        description="Maximum memory per agent in MB",
+        ge=512,
+        le=8192,
+    )
+
+    # Temporal settings
+    temporal_namespace: str = Field(
+        default="default",
+        description="Temporal namespace for workflows",
+    )
+
+    temporal_host: str = Field(
+        default="localhost:7233",
+        description="Temporal server host and port",
+    )
+
+    # OpenAI settings
+    openai_api_key: str | None = Field(
+        default=None,
+        description="OpenAI API key for AI agents",
+    )
+
+    openai_model: str = Field(
+        default="gpt-4",
+        description="OpenAI model to use for agents",
+    )
+
+    @field_validator("default_browser")
+    @classmethod
+    def validate_browser(cls, v: str) -> str:
+        """Validate browser value."""
+        valid_browsers = {"chromium", "firefox", "webkit"}
+        if v.lower() not in valid_browsers:
+            msg = f"Invalid browser: {v}. Must be one of {valid_browsers}"
+            raise ValueError(msg)
+        return v.lower()
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize E2E settings."""
+        super().__init__(**kwargs)
+        # Import Path here to avoid issues
+        from pathlib import Path
+
+        if isinstance(self.e2e_data_path, str):
+            self.e2e_data_path = Path(self.e2e_data_path)
+
+
+def get_e2e_settings() -> E2ESettings:
+    """Get the global E2E settings instance.
+
+    Returns:
+        E2ESettings: The E2E settings instance
+
+    """
+    if E2ESettings.instance is None:
+        E2ESettings.instance = E2ESettings()
+    return E2ESettings.instance
+
+
+def reset_e2e_settings() -> None:
+    """Reset the global E2E settings instance.
+
+    This is mainly useful for testing.
+    """
+    E2ESettings.instance = None
