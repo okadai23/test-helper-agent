@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 import structlog
 
-from clean_interfaces.utils.logger import configure_logging, get_logger, log_performance
+from test_helper.utils.logger import configure_logging, get_logger, log_performance
 
 # Test constants
 EXPECTED_DURATION_150 = 150

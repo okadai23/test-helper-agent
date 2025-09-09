@@ -4,18 +4,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from clean_interfaces.app import Application, create_app, run_app
+from test_helper.app import Application, create_app, run_app
 
 
 class TestApplication:
     """Test Application class."""
 
-    @patch("clean_interfaces.app.load_dotenv")
-    @patch("clean_interfaces.app.configure_logging")
-    @patch("clean_interfaces.app.get_logger")
-    @patch("clean_interfaces.app.get_settings")
-    @patch("clean_interfaces.app.get_interface_settings")
-    @patch("clean_interfaces.app.InterfaceFactory")
+    @patch("test_helper.app.load_dotenv")
+    @patch("test_helper.app.configure_logging")
+    @patch("test_helper.app.get_logger")
+    @patch("test_helper.app.get_settings")
+    @patch("test_helper.app.get_interface_settings")
+    @patch("test_helper.app.InterfaceFactory")
     def test_application_initialization(
         self,
         mock_factory_class: MagicMock,
@@ -64,12 +64,12 @@ class TestApplication:
         mock_factory.create_from_settings.assert_called_once()
         assert app.interface == mock_interface
 
-    @patch("clean_interfaces.app.load_dotenv")
-    @patch("clean_interfaces.app.configure_logging")
-    @patch("clean_interfaces.app.get_logger")
-    @patch("clean_interfaces.app.get_settings")
-    @patch("clean_interfaces.app.get_interface_settings")
-    @patch("clean_interfaces.app.InterfaceFactory")
+    @patch("test_helper.app.load_dotenv")
+    @patch("test_helper.app.configure_logging")
+    @patch("test_helper.app.get_logger")
+    @patch("test_helper.app.get_settings")
+    @patch("test_helper.app.get_interface_settings")
+    @patch("test_helper.app.InterfaceFactory")
     def test_application_initialization_with_dotenv(
         self,
         mock_factory_class: MagicMock,
@@ -121,12 +121,12 @@ class TestApplication:
         mock_factory.create_from_settings.assert_called_once()
         assert app.interface == mock_interface
 
-    @patch("clean_interfaces.app.load_dotenv")
-    @patch("clean_interfaces.app.configure_logging")
-    @patch("clean_interfaces.app.get_logger")
-    @patch("clean_interfaces.app.get_settings")
-    @patch("clean_interfaces.app.get_interface_settings")
-    @patch("clean_interfaces.app.InterfaceFactory")
+    @patch("test_helper.app.load_dotenv")
+    @patch("test_helper.app.configure_logging")
+    @patch("test_helper.app.get_logger")
+    @patch("test_helper.app.get_settings")
+    @patch("test_helper.app.get_interface_settings")
+    @patch("test_helper.app.InterfaceFactory")
     def test_application_run(
         self,
         mock_factory_class: MagicMock,
@@ -165,12 +165,12 @@ class TestApplication:
         # Verify interface was run
         mock_interface.run.assert_called_once()
 
-    @patch("clean_interfaces.app.load_dotenv")
-    @patch("clean_interfaces.app.configure_logging")
-    @patch("clean_interfaces.app.get_logger")
-    @patch("clean_interfaces.app.get_settings")
-    @patch("clean_interfaces.app.get_interface_settings")
-    @patch("clean_interfaces.app.InterfaceFactory")
+    @patch("test_helper.app.load_dotenv")
+    @patch("test_helper.app.configure_logging")
+    @patch("test_helper.app.get_logger")
+    @patch("test_helper.app.get_settings")
+    @patch("test_helper.app.get_interface_settings")
+    @patch("test_helper.app.InterfaceFactory")
     def test_application_run_with_exception(
         self,
         mock_factory_class: MagicMock,
@@ -221,7 +221,7 @@ class TestApplication:
 
 def test_create_app() -> None:
     """Test create_app factory function."""
-    with patch("clean_interfaces.app.Application") as mock_app_class:
+    with patch("test_helper.app.Application") as mock_app_class:
         mock_app = MagicMock()
         mock_app_class.return_value = mock_app
 
@@ -235,7 +235,7 @@ def test_create_app_with_dotenv() -> None:
     """Test create_app factory function with dotenv path."""
     from pathlib import Path
 
-    with patch("clean_interfaces.app.Application") as mock_app_class:
+    with patch("test_helper.app.Application") as mock_app_class:
         mock_app = MagicMock()
         mock_app_class.return_value = mock_app
         dotenv_path = Path("test.env")
@@ -248,7 +248,7 @@ def test_create_app_with_dotenv() -> None:
 
 def test_run_app() -> None:
     """Test run_app function."""
-    with patch("clean_interfaces.app.create_app") as mock_create_app:
+    with patch("test_helper.app.create_app") as mock_create_app:
         mock_app = MagicMock()
         mock_create_app.return_value = mock_app
 
@@ -262,7 +262,7 @@ def test_run_app_with_dotenv() -> None:
     """Test run_app function with dotenv path."""
     from pathlib import Path
 
-    with patch("clean_interfaces.app.create_app") as mock_create_app:
+    with patch("test_helper.app.create_app") as mock_create_app:
         mock_app = MagicMock()
         mock_create_app.return_value = mock_app
         dotenv_path = Path("test.env")

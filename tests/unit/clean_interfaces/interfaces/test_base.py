@@ -4,7 +4,7 @@ from abc import ABC
 
 import pytest
 
-from clean_interfaces.interfaces.base import BaseInterface
+from test_helper.interfaces.base import BaseInterface
 
 
 class TestBaseInterface:

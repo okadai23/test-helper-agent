@@ -4,7 +4,7 @@ import sys
 
 import pexpect
 
-from clean_interfaces.models.io import WelcomeMessage
+from test_helper.models.io import WelcomeMessage
 
 
 class TestCLIE2E:
@@ -20,7 +20,7 @@ class TestCLIE2E:
         # Run CLI without arguments - should show welcome
         try:
             output, exitstatus = run_cli_with_debug(
-                f"{sys.executable} -u -m clean_interfaces.main",
+                f"{sys.executable} -u -m test_helper.main",
                 env=clean_env,
                 timeout=10,
                 debug=True,  # Enable debug output to see what's happening
@@ -51,7 +51,7 @@ class TestCLIE2E:
         # Run CLI with --help - now it should work properly
         try:
             output, exitstatus = run_cli_with_debug(
-                f"{sys.executable} -u -m clean_interfaces.main --help",
+                f"{sys.executable} -u -m test_helper.main --help",
                 env=clean_env,
                 timeout=10,
                 debug=True,  # Enable debug output
@@ -81,7 +81,7 @@ class TestCLIE2E:
         # Use run_cli_with_debug to capture output
         try:
             _, exitstatus = run_cli_with_debug(
-                f"{sys.executable} -u -m clean_interfaces.main --version",
+                f"{sys.executable} -u -m test_helper.main --version",
                 env=clean_env,
                 timeout=10,
                 debug=False,  # Disable debug for this test
@@ -106,7 +106,7 @@ class TestCLIE2E:
         # Use run_cli_with_debug to capture output
         try:
             output, exitstatus = run_cli_with_debug(
-                f"{sys.executable} -u -m clean_interfaces.main invalid-command",
+                f"{sys.executable} -u -m test_helper.main invalid-command",
                 env=clean_env,
                 timeout=10,
                 debug=False,  # Disable debug for this test
@@ -134,7 +134,7 @@ class TestCLIE2E:
         # The CLI interface inside does have 'welcome' command, but main.py filters args
         try:
             output, exitstatus = run_cli_with_debug(
-                f"{sys.executable} -u -m clean_interfaces.main welcome",
+                f"{sys.executable} -u -m test_helper.main welcome",
                 env=clean_env,
                 timeout=10,
                 debug=False,  # Disable debug output
@@ -166,7 +166,7 @@ class TestCLIE2E:
         # Use run_cli_with_debug to capture output
         try:
             output, exitstatus = run_cli_with_debug(
-                f"{sys.executable} -u -m clean_interfaces.main",
+                f"{sys.executable} -u -m test_helper.main",
                 env=clean_env,
                 timeout=10,
                 debug=False,  # Disable debug for this test

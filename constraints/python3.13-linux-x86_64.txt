@@ -279,7 +279,7 @@ py-serializable==2.1.0
     # via cyclonedx-python-lib
 py-spy==0.4.1
     # via clean-interfaces (pyproject.toml)
-pycparser==2.22
+pycparser==2.23
     # via cffi
 pydantic==2.11.7
     # via
@@ -313,7 +313,7 @@ pytest==8.4.2
     #   pytest-cov
     #   pytest-mock
     #   pytest-xdist
-pytest-cov==6.3.0
+pytest-cov==7.0.0
     # via clean-interfaces (pyproject.toml)
 pytest-mock==3.15.0
     # via clean-interfaces (pyproject.toml)
@@ -427,7 +427,7 @@ tomlkit==0.13.3
     #   hatch
     #   pdm
     #   python-semantic-release
-trove-classifiers==2025.9.8.13
+trove-classifiers==2025.9.9.12
     # via hatchling
 truststore==0.10.4
     # via pdm

@@ -4,9 +4,9 @@ from unittest.mock import patch
 
 import pytest
 
-from clean_interfaces.interfaces.base import BaseInterface
-from clean_interfaces.interfaces.factory import InterfaceFactory
-from clean_interfaces.types import InterfaceType
+from test_helper.interfaces.base import BaseInterface
+from test_helper.interfaces.factory import InterfaceFactory
+from test_helper.types import InterfaceType
 
 
 class TestInterfaceFactory:
@@ -35,7 +35,7 @@ class TestInterfaceFactory:
     def test_factory_respects_interface_type_setting(self) -> None:
         """Test that factory uses interface type from settings."""
         with patch(
-            "clean_interfaces.interfaces.factory.get_interface_settings",
+            "test_helper.interfaces.factory.get_interface_settings",
         ) as mock_settings:
             mock_settings.return_value.interface_type = InterfaceType.CLI
 

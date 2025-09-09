@@ -98,7 +98,7 @@ def test(session: Session) -> None:
         session.skip("No test targets found in src directory")
 
     session.install("-c", constraints(session).as_posix(), ".[dev]")
-    session.run("pytest", "--cov=src", f"--cov-fail-under={COVER_MIN}")
+    session.run("pytest", "--cov=src/test_helper", f"--cov-fail-under={COVER_MIN}")
 
 
 @nox.session(python=["3.13"], tags=["security"])

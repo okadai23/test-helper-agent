@@ -14,9 +14,9 @@ class TestSwaggerUIE2E:
         monkeypatch.setenv("INTERFACE_TYPE", "restapi")
 
         # Import here to ensure environment variable is set
-        from clean_interfaces.interfaces.factory import InterfaceFactory
-        from clean_interfaces.interfaces.restapi import RestAPIInterface
-        from clean_interfaces.types import InterfaceType
+        from test_helper.interfaces.factory import InterfaceFactory
+        from test_helper.interfaces.restapi import RestAPIInterface
+        from test_helper.types import InterfaceType
 
         factory = InterfaceFactory()
         interface = factory.create(InterfaceType.RESTAPI)
@@ -36,10 +36,10 @@ class TestSwaggerUIE2E:
         # Verify content includes dynamic documentation
         content = response.text.lower()
         assert "swagger-ui" in content
-        assert "clean interfaces api" in content
+        assert "test helper api" in content
 
-        # Verify dynamic content from source code is included
-        assert "interface" in content or "restapi" in content
+        # Verify dynamic content elements are present
+        assert "enhanced documentation" in content
 
     def test_swagger_ui_json_schema(self, client: TestClient) -> None:
         """Test Swagger UI JSON schema endpoint with dynamic content."""
@@ -53,7 +53,7 @@ class TestSwaggerUIE2E:
         assert "components" in schema
 
         # Verify metadata from dynamic content generation
-        assert schema["info"]["title"] == "Clean Interfaces API"
+        assert schema["info"]["title"] == "Test Helper API"
         assert "dynamic_content" in schema["info"]
         assert schema["info"]["dynamic_content"]["source_files_analyzed"] > 0
         assert schema["info"]["dynamic_content"]["documentation_files_found"] > 0
@@ -100,8 +100,8 @@ class TestSwaggerUIE2E:
         assert schema["info"]["dynamic_content"]["source_files_analyzed"] > 0
         assert "swagger-ui" in ui_response.text.lower()
 
-        # Verify that the UI includes references to analyzed content
+        # Verify that the UI includes key elements
         ui_content = ui_response.text.lower()
-        for interface in analysis["interfaces"]:
-            if interface.lower() != "base":  # Skip base interface
-                assert interface.lower() in ui_content or "interface" in ui_content
+        # Check for documentation elements rather than specific interface names
+        assert "enhanced documentation" in ui_content
+        assert "dynamically generated" in ui_content

@@ -8,8 +8,8 @@ import pytest
 import structlog
 import yaml
 
-from clean_interfaces.utils.file_handler import FileHandler
-from clean_interfaces.utils.logger import configure_logging, get_logger
+from test_helper.utils.file_handler import FileHandler
+from test_helper.utils.logger import configure_logging, get_logger
 
 
 class TestFileHandlerLoggingIntegration:

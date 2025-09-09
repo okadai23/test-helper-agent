@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from clean_interfaces.interfaces.base import BaseInterface
-from clean_interfaces.interfaces.restapi import RestAPIInterface
+from test_helper.interfaces.base import BaseInterface
+from test_helper.interfaces.restapi import RestAPIInterface
 
 
 class TestRestAPIInterface:
@@ -30,7 +30,7 @@ class TestRestAPIInterface:
     def test_restapi_interface_app_title(self) -> None:
         """Test that FastAPI app has correct title."""
         api = RestAPIInterface()
-        assert api.app.title == "Clean Interfaces API"
+        assert api.app.title == "Test Helper API"
         assert api.app.version == "1.0.0"
 
     def test_restapi_interface_has_endpoints(self) -> None:
@@ -41,7 +41,7 @@ class TestRestAPIInterface:
         assert "/api/v1/welcome" in routes
         assert "/" in routes  # Root redirect
 
-    @patch("clean_interfaces.interfaces.restapi.uvicorn")
+    @patch("test_helper.interfaces.restapi.uvicorn")
     def test_restapi_run_method(self, mock_uvicorn: MagicMock) -> None:
         """Test RestAPI run method configures uvicorn."""
         api = RestAPIInterface()
@@ -64,7 +64,7 @@ class TestRestAPIInterface:
 
     def test_restapi_interface_initialization_logs(self) -> None:
         """Test that RestAPIInterface logs initialization."""
-        with patch("clean_interfaces.base.get_logger") as mock_get_logger:
+        with patch("test_helper.base.get_logger") as mock_get_logger:
             # Setup mock logger
             mock_logger = MagicMock()
             mock_get_logger.return_value = mock_logger

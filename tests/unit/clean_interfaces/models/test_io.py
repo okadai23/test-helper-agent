@@ -1,6 +1,6 @@
 """Tests for I/O models."""
 
-from clean_interfaces.models.io import WelcomeMessage
+from test_helper.models.io import WelcomeMessage
 
 
 class TestWelcomeMessage:
@@ -16,7 +16,7 @@ class TestWelcomeMessage:
         """Test WelcomeMessage default values."""
         # Test default message and hint
         msg_all_defaults = WelcomeMessage()
-        assert msg_all_defaults.message == "Welcome to Clean Interfaces!"
+        assert msg_all_defaults.message == "Welcome to Test Helper!"
         assert msg_all_defaults.hint == "Type --help for more information"
 
         # Test default hint with custom message

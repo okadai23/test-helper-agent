@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-from clean_interfaces.types import InterfaceType
+from test_helper.types import InterfaceType
 
 
 class TestInterfaceType:

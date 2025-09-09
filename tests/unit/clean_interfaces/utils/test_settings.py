@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from clean_interfaces.utils.settings import (
+from test_helper.utils.settings import (
     LoggingSettings,
     OTelExportMode,
 )
@@ -196,8 +196,8 @@ class TestInterfaceSettings:
 
     def test_default_interface_type(self) -> None:
         """Test default interface type is CLI."""
-        from clean_interfaces.types import InterfaceType
-        from clean_interfaces.utils.settings import InterfaceSettings
+        from test_helper.types import InterfaceType
+        from test_helper.utils.settings import InterfaceSettings
 
         settings = InterfaceSettings()
         assert settings.interface_type == "cli"
@@ -205,8 +205,8 @@ class TestInterfaceSettings:
 
     def test_interface_type_from_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test interface type can be set from environment variable."""
-        from clean_interfaces.types import InterfaceType
-        from clean_interfaces.utils.settings import InterfaceSettings
+        from test_helper.types import InterfaceType
+        from test_helper.utils.settings import InterfaceSettings
 
         monkeypatch.setenv("INTERFACE_TYPE", "cli")
         settings = InterfaceSettings()
@@ -218,7 +218,7 @@ class TestInterfaceSettings:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test invalid interface type raises validation error."""
-        from clean_interfaces.utils.settings import InterfaceSettings
+        from test_helper.utils.settings import InterfaceSettings
 
         monkeypatch.setenv("INTERFACE_TYPE", "invalid")
         with pytest.raises(ValueError, match="Invalid interface type"):
@@ -226,7 +226,7 @@ class TestInterfaceSettings:
 
     def test_get_interface_settings_singleton(self) -> None:
         """Test get_interface_settings returns singleton instance."""
-        from clean_interfaces.utils.settings import (
+        from test_helper.utils.settings import (
             get_interface_settings,
             reset_interface_settings,
         )
@@ -243,7 +243,7 @@ class TestInterfaceSettings:
 
     def test_interface_settings_model_dump(self) -> None:
         """Test interface settings can be dumped to dict."""
-        from clean_interfaces.utils.settings import InterfaceSettings
+        from test_helper.utils.settings import InterfaceSettings
 
         settings = InterfaceSettings()
         data = settings.model_dump()

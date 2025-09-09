@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import typer
 
-from clean_interfaces.interfaces.base import BaseInterface
-from clean_interfaces.interfaces.cli import CLIInterface
+from test_helper.interfaces.base import BaseInterface
+from test_helper.interfaces.cli import CLIInterface
 
 
 class TestCLIInterface:
@@ -31,14 +31,14 @@ class TestCLIInterface:
         cli = CLIInterface()
 
         # Mock the console output
-        with patch("clean_interfaces.interfaces.cli.console") as mock_console:
+        with patch("test_helper.interfaces.cli.console") as mock_console:
             cli.welcome()
 
             # Check that welcome message was printed (should be called twice)
             assert mock_console.print.call_count == 2
             # First call is the welcome message
             first_call = mock_console.print.call_args_list[0][0]
-            assert "Welcome to Clean Interfaces!" in str(first_call)
+            assert "Welcome to Test Helper!" in str(first_call)
             # Second call is the hint
             second_call = mock_console.print.call_args_list[1][0]
             assert "Type --help for more information" in str(second_call)

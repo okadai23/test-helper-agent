@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from clean_interfaces.models.api import ErrorResponse, HealthResponse, WelcomeResponse
+from test_helper.models.api import ErrorResponse, HealthResponse, WelcomeResponse
 
 
 class TestHealthResponse:
@@ -28,7 +28,7 @@ class TestWelcomeResponse:
     def test_welcome_response_defaults(self) -> None:
         """Test WelcomeResponse with default values."""
         response = WelcomeResponse()
-        assert response.message == "Welcome to Clean Interfaces!"
+        assert response.message == "Welcome to Test Helper!"
         assert response.hint == "Type --help for more information"
         assert response.interface == "RestAPI"
 

@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from clean_interfaces.models.io import WelcomeMessage
+from test_helper.models.io import WelcomeMessage
 
 
 class TestCLISimple:
@@ -33,7 +33,7 @@ class TestCLISimple:
         """Test that CLI shows welcome message when run without arguments."""
         # Run the CLI without arguments
         result = subprocess.run(  # noqa: S603
-            [sys.executable, "-m", "clean_interfaces.main"],
+            [sys.executable, "-m", "test_helper.main"],
             capture_output=True,
             text=True,
             env=self.env,
@@ -55,7 +55,7 @@ class TestCLISimple:
         """Test that CLI shows help when --help is used."""
         # Run the CLI with --help
         result = subprocess.run(  # noqa: S603
-            [sys.executable, "-m", "clean_interfaces.main", "--help"],
+            [sys.executable, "-m", "test_helper.main", "--help"],
             capture_output=True,
             text=True,
             env=self.env,
@@ -77,7 +77,7 @@ class TestCLISimple:
         """Test that CLI handles invalid commands gracefully."""
         # Run the CLI with an invalid command
         result = subprocess.run(  # noqa: S603
-            [sys.executable, "-m", "clean_interfaces.main", "invalid-command"],
+            [sys.executable, "-m", "test_helper.main", "invalid-command"],
             capture_output=True,
             text=True,
             env=self.env,
@@ -95,7 +95,7 @@ class TestCLISimple:
         """Test running the welcome command explicitly."""
         # Run the CLI with welcome command
         result = subprocess.run(  # noqa: S603
-            [sys.executable, "-m", "clean_interfaces.main", "welcome"],
+            [sys.executable, "-m", "test_helper.main", "welcome"],
             capture_output=True,
             text=True,
             env=self.env,

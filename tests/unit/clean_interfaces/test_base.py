@@ -2,14 +2,14 @@
 
 from unittest.mock import Mock, patch
 
-from clean_interfaces.base import BaseComponent
-from clean_interfaces.utils.logger import LoggerProtocol
+from test_helper.base import BaseComponent
+from test_helper.utils.logger import LoggerProtocol
 
 
 class TestBaseComponent:
     """Test cases for BaseComponent class."""
 
-    @patch("clean_interfaces.base.get_logger")
+    @patch("test_helper.base.get_logger")
     def test_logger_initialization(self, mock_get_logger: Mock) -> None:
         """Test that logger is properly initialized with class name."""
         # Arrange
@@ -21,11 +21,11 @@ class TestBaseComponent:
 
         # Assert
         mock_get_logger.assert_called_once_with(
-            "clean_interfaces.base.BaseComponent",
+            "test_helper.base.BaseComponent",
         )
         assert instance.logger is mock_logger
 
-    @patch("clean_interfaces.base.get_logger")
+    @patch("test_helper.base.get_logger")
     def test_logger_direct_access(self, mock_get_logger: Mock) -> None:
         """Test direct access to logger methods."""
         # Arrange
@@ -50,7 +50,7 @@ class TestBaseComponent:
             system="database",
         )
 
-    @patch("clean_interfaces.base.get_logger")
+    @patch("test_helper.base.get_logger")
     def test_inheritance(self, mock_get_logger: Mock) -> None:
         """Test that classes inheriting from BaseComponent get proper logger name."""
         # Arrange
@@ -69,7 +69,7 @@ class TestBaseComponent:
         )
         assert instance.logger is mock_logger
 
-    @patch("clean_interfaces.base.get_logger")
+    @patch("test_helper.base.get_logger")
     def test_logger_bind(self, mock_get_logger: Mock) -> None:
         """Test logger bind method can be used."""
         # Arrange
