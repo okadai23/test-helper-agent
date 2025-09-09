@@ -125,11 +125,17 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     
     # Summary output
     if [ $ERRORS_FOUND -eq 1 ]; then
-        echo "" >&2
-        echo "ERROR: Quality checks failed. Please fix the following issues:" >&2
-        echo -e "$ERROR_SUMMARY" >&2
-        echo "Note: Quality check errors found but not blocking" >&2
+        # Errors were found, output JSON to stdout to block the agent
+        REASON="Python quality checks failed with the following errors:\n\n$ERROR_SUMMARY"
+        
+        # Use jq to safely construct the JSON output
+        jq -n --arg decision "block" --arg reason "$REASON" \
+          '{decision: $decision, reason: $reason}'
+          
+        # Also print a summary to stderr for user visibility in logs
+        echo "ERROR: Quality checks failed. Blocking operation." >&2
     else
+        # No errors, print success to stderr
         echo "" >&2
         echo "✓ All quality checks passed!" >&2
     fi
@@ -138,5 +144,5 @@ else
     echo "Debug: Not a Python file, skipping checks (file: $FILE_PATH)" >&2
 fi
 
-# Always exit 0 to avoid blocking
+# Exit with 0, as the blocking is handled by the JSON output to stdout.
 exit 0

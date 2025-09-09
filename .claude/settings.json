@@ -46,15 +46,13 @@
     },
     "env": {
         "BASH_MAX_TIMEOUT_MS": 3600000,
-        "DISABLE_TELEMETRY":1,
+        "DISABLE_TELEMETRY": 1,
         "MAX_THINKING_TOKENS": "31999"
-
-
     },
     "hooks": {
         "PostToolUse": [
             {
-                "matcher": "Write|Edit|MultiEdit",
+                "matcher": "Write|Edit|MultiEdit|Serena",
                 "hooks": [
                     {
                         "type": "command",

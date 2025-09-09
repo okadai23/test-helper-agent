@@ -91,12 +91,14 @@ As a QA engineer or developer working on a web application, I want to automatica
 -   **FR-007**: System MUST support both headless and headed browser modes for test execution
 -   **FR-008**: System MUST preserve test intent when applying fixes (not just make tests pass by removing assertions)
 -   **FR-009**: System MUST generate human-readable test code with appropriate comments and test descriptions
--   **FR-010**: System MUST handle Chrome and Edge
+-   **FR-010**: System MUST handle Chrome and Edge browsers
 -   **FR-011**: System MUST support applications running on both localhost and remote URLs
--   **FR-012**: System MUST handle test data management for external files and generated(generated data save s file)
--   **FR-013**: System MUST provide execution reports showing pass/fail and screenshots and performance metrics
--   **FR-014**: System MUST support single page applications and also multi-page traditional apps
+-   **FR-012**: System MUST handle test data management for external files and generated data persistence
+-   **FR-013**: System MUST provide execution reports showing pass/fail, screenshots, and performance metrics
+-   **FR-014**: System MUST support single page applications and multi-page traditional apps
 -   **FR-015**: Test history and modifications MUST be retained for 100 files and 30 days
+-   **FR-016**: System MUST provide both CLI and programmatic interfaces for all operations
+-   **FR-017**: System MUST support interface switching through factory pattern without changing core logic
 
 ### Key Entities _(include if feature involves data)_
 

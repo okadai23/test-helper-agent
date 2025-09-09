@@ -27,7 +27,7 @@ class Project(BaseModel):
 
     id: str = Field(default_factory=lambda: str(uuid4()))
     name: str = Field(..., min_length=1, max_length=100)
-    url: HttpUrl = Field(..., description="Target application URL")
+    url: HttpUrl | str = Field(..., description="Target application URL")
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     status: Literal["active", "archived", "paused"] = "active"

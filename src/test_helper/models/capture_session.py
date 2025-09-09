@@ -41,5 +41,14 @@ class CaptureSession(BaseModel):
     ended_at: datetime | None = None
     status: Literal["active", "completed", "failed", "cancelled"] = "active"
     browser_session_id: str
-    captured_interactions: list[CapturedInteraction] = Field(default_factory=list)
-    dom_snapshots: list[DOMSnapshot] = Field(default_factory=list)
+
+    def _empty_interactions() -> list[CapturedInteraction]:  # type: ignore[no-redef]
+        return []
+
+    def _empty_dom_snapshots() -> list[DOMSnapshot]:  # type: ignore[no-redef]
+        return []
+
+    captured_interactions: list[CapturedInteraction] = Field(
+        default_factory=_empty_interactions,
+    )
+    dom_snapshots: list[DOMSnapshot] = Field(default_factory=_empty_dom_snapshots)

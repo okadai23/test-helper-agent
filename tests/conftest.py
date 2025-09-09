@@ -279,7 +279,9 @@ def mock_fix_proposal_data() -> dict[str, Any]:
         "confidence": 0.85,
         "fix_type": "selector",
         "description": "Update selector to more stable alternative",
-        "rationale": "Original selector #button was not found, but .submit-btn is available",
+        "rationale": (
+            "Original selector #button was not found, but .submit-btn is available"
+        ),
         "changes": [
             {
                 "step_id": step_id,
@@ -346,7 +348,7 @@ def e2e_test_data_dir(temp_dir: Path) -> Path:
 @pytest.fixture
 def isolated_storage_manager(e2e_test_data_dir: Path) -> Any:
     """Create an isolated storage manager for testing."""
-    from test_helper.e2e.lib.storage_manager import StorageManager
+    from test_helper.lib.storage_manager import StorageManager
 
     return StorageManager(base_path=e2e_test_data_dir)
 

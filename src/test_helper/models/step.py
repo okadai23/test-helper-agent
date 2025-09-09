@@ -2,12 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from .scenario import Assertion
+if TYPE_CHECKING:
+    from .scenario import Assertion
+
+
+# Key modifier type and a typed empty factory for lists of modifier keys
+ModifierKey = Literal["Alt", "Control", "Meta", "Shift"]
+
+
+def _empty_modifier_keys() -> list[ModifierKey]:
+    return []
 
 
 class BaseStep(BaseModel):
@@ -26,9 +35,7 @@ class ClickStep(BaseStep):
     selector: str
     button: Literal["left", "right", "middle"] = "left"
     click_count: int = Field(default=1, ge=1, le=3)
-    modifier_keys: list[Literal["Alt", "Control", "Meta", "Shift"]] = Field(
-        default_factory=list,
-    )
+    modifier_keys: list[ModifierKey] = Field(default_factory=_empty_modifier_keys)
 
 
 class InputStep(BaseStep):

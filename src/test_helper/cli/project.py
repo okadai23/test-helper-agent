@@ -1,46 +1,123 @@
-"""CLI commands for E2E Test Automation."""
+"""Project management CLI commands."""
 
 from __future__ import annotations
 
 import json
-from datetime import UTC
-from typing import Any
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Annotated, Any, NoReturn
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
-from test_helper.e2e.lib.storage_manager import StorageManager
-from test_helper.e2e.models.browser_config import BrowserConfig
-from test_helper.e2e.models.project import Project
+from test_helper.lib.storage_manager import StorageManager
+from test_helper.models.browser_config import BrowserConfig, ViewportSize
+from test_helper.models.project import Project
 from test_helper.utils.logger import get_logger
 
 logger = get_logger(__name__)
 console = Console()
 
-# Create the main CLI app
-app = typer.Typer(
-    name="e2e",
-    help="E2E Test Automation AI Agent commands",
-    no_args_is_help=True,
-)
+
+class BrowserType(str, Enum):
+    """Browser type options."""
+
+    CHROMIUM = "chromium"
+    FIREFOX = "firefox"
+    WEBKIT = "webkit"
+
+
+class OutputFormat(str, Enum):
+    """Output format options."""
+
+    TABLE = "table"
+    JSON = "json"
+
+
+# Create project subcommand app
+app = typer.Typer(help="Project management commands", no_args_is_help=True)
 
 # Initialize storage manager
 storage = StorageManager()
 
 
-@app.command("create-project")
+def _exit_with_error(message: str, code: int = 1) -> NoReturn:
+    """Print error message and exit."""
+    console.print(f"[red]{message}[/red]")
+    raise typer.Exit(code=code)
+
+
+def _validate_status(status: str | None) -> str | None:
+    """Validate project status."""
+    if status and status not in ["active", "archived", "paused"]:
+        error_msg = (
+            f"Error: Invalid status '{status}'. Must be active, archived, or paused"
+        )
+        _exit_with_error(error_msg)
+    return status
+
+
+def _build_updates(
+    name: str | None,
+    url: str | None,
+    status: str | None,
+) -> dict[str, Any]:
+    """Build update dictionary from provided values."""
+    updates: dict[str, Any] = {}
+    if name:
+        updates["name"] = name
+    if url:
+        updates["url"] = url
+    if status:
+        updates["status"] = _validate_status(status)
+
+    if updates:
+        updates["updated_at"] = datetime.now(UTC)
+
+    return updates
+
+
+def _display_update_results(
+    saved_project: Project,
+    output: str,
+    name: str | None,
+    url: str | None,
+    status: str | None,
+) -> None:
+    """Display update results in the requested format."""
+    if output == "json":
+        console.print(json.dumps(saved_project.model_dump(mode="json"), indent=2))
+    else:
+        console.print(
+            f"[green]✓[/green] Project '{saved_project.name}' updated successfully",
+        )
+        if name:
+            console.print(f"Name: {saved_project.name}")
+        if url:
+            console.print(f"URL: {saved_project.url}")
+        if status:
+            console.print(f"Status: {saved_project.status}")
+
+
+@app.command("create")
 def create_project(
     name: str = typer.Argument(..., help="Project name"),
     url: str = typer.Argument(..., help="Target application URL"),
-    browser: str = typer.Option(
-        "chromium",
-        help="Browser type (chromium, firefox, webkit)",
-    ),
-    headless: bool = typer.Option(True, help="Run browser in headless mode"),
-    width: int = typer.Option(1280, help="Viewport width"),
-    height: int = typer.Option(720, help="Viewport height"),
-    output: str = typer.Option("table", help="Output format (table, json)"),
+    browser: Annotated[
+        BrowserType,
+        typer.Option(help="Browser type (chromium, firefox, webkit)"),
+    ] = BrowserType.CHROMIUM,
+    headless: Annotated[
+        bool,
+        typer.Option(help="Run browser in headless mode"),
+    ] = True,
+    width: Annotated[int, typer.Option(help="Viewport width")] = 1280,
+    height: Annotated[int, typer.Option(help="Viewport height")] = 720,
+    output: Annotated[
+        OutputFormat,
+        typer.Option(help="Output format (table, json)"),
+    ] = OutputFormat.TABLE,
 ) -> None:
     """Create a new E2E test project."""
     logger.info("Creating E2E project", name=name, url=url)
@@ -48,16 +125,11 @@ def create_project(
     try:
         # Check if project name already exists
         if storage.project_name_exists(name):
-            console.print(
-                f"[red]Error: Project with name '{name}' already exists[/red]",
-            )
-            raise typer.Exit(1)
+            _exit_with_error(f"Error: Project with name '{name}' already exists")
 
         # Create browser config
-        from test_helper.e2e.models.browser_config import ViewportSize
-
         browser_config = BrowserConfig(
-            browser=browser,  # type: ignore[arg-type]
+            browser=browser.value,
             headless=headless,
             viewport=ViewportSize(width=width, height=height),
         )
@@ -65,13 +137,13 @@ def create_project(
         # Create project
         project = Project(
             name=name,
-            url=url,  # type: ignore[arg-type]
+            url=url,
             browser_config=browser_config,
         )
 
         created_project = storage.create_project(project)
 
-        if output == "json":
+        if output == OutputFormat.JSON:
             console.print(json.dumps(created_project.model_dump(mode="json"), indent=2))
         else:
             console.print(f"[green]✓[/green] Project '{name}' created successfully")
@@ -88,15 +160,18 @@ def create_project(
         raise typer.Exit(1) from e
 
 
-@app.command("list-projects")
+@app.command("list")
 def list_projects(
-    status: str | None = typer.Option(
-        None,
-        help="Filter by status (active, archived, paused)",
-    ),
-    page: int = typer.Option(1, help="Page number"),
-    limit: int = typer.Option(20, help="Items per page"),
-    output: str = typer.Option("table", help="Output format (table, json)"),
+    status: Annotated[
+        str | None,
+        typer.Option(help="Filter by status (active, archived, paused)"),
+    ] = None,
+    page: Annotated[int, typer.Option(help="Page number")] = 1,
+    limit: Annotated[int, typer.Option(help="Items per page")] = 20,
+    output: Annotated[
+        OutputFormat,
+        typer.Option(help="Output format (table, json)"),
+    ] = OutputFormat.TABLE,
 ) -> None:
     """List E2E test projects."""
     logger.info("Listing E2E projects", status=status, page=page, limit=limit)
@@ -104,7 +179,7 @@ def list_projects(
     try:
         projects, total = storage.list_projects(status=status, page=page, limit=limit)
 
-        if output == "json":
+        if output == OutputFormat.JSON:
             result = {
                 "items": [p.model_dump(mode="json") for p in projects],
                 "total": total,
@@ -145,10 +220,13 @@ def list_projects(
         raise typer.Exit(1) from e
 
 
-@app.command("get-project")
+@app.command("get")
 def get_project(
     project_id: str = typer.Argument(..., help="Project ID"),
-    output: str = typer.Option("table", help="Output format (table, json)"),
+    output: Annotated[
+        OutputFormat,
+        typer.Option(help="Output format (table, json)"),
+    ] = OutputFormat.TABLE,
 ) -> None:
     """Get details of a specific E2E test project."""
     logger.info("Getting E2E project details", project_id=project_id)
@@ -157,10 +235,9 @@ def get_project(
         project = storage.get_project(project_id)
 
         if not project:
-            console.print(f"[red]Project {project_id} not found[/red]")
-            raise typer.Exit(1)
+            _exit_with_error(f"Project {project_id} not found")
 
-        if output == "json":
+        if output == OutputFormat.JSON:
             console.print(json.dumps(project.model_dump(mode="json"), indent=2))
         else:
             console.print(f"[green]Project: {project.name}[/green]")
@@ -170,9 +247,8 @@ def get_project(
             console.print(f"Test Count: {project.test_count}")
             console.print(f"Browser: {project.browser_config.browser}")
             console.print(f"Headless: {project.browser_config.headless}")
-            console.print(
-                f"Viewport: {project.browser_config.viewport.width}x{project.browser_config.viewport.height}",
-            )
+            viewport = project.browser_config.viewport
+            console.print(f"Viewport: {viewport.width}x{viewport.height}")
             console.print(
                 f"Created: {project.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
             )
@@ -188,16 +264,19 @@ def get_project(
         raise typer.Exit(1) from e
 
 
-@app.command("update-project")
+@app.command("update")
 def update_project(
     project_id: str = typer.Argument(..., help="Project ID"),
-    name: str | None = typer.Option(None, help="New project name"),
-    url: str | None = typer.Option(None, help="New target URL"),
-    status: str | None = typer.Option(
-        None,
-        help="New status (active, archived, paused)",
-    ),
-    output: str = typer.Option("table", help="Output format (table, json)"),
+    name: Annotated[str | None, typer.Option(help="New project name")] = None,
+    url: Annotated[str | None, typer.Option(help="New target URL")] = None,
+    status: Annotated[
+        str | None,
+        typer.Option(help="New status (active, archived, paused)"),
+    ] = None,
+    output: Annotated[
+        OutputFormat,
+        typer.Option(help="Output format (table, json)"),
+    ] = OutputFormat.TABLE,
 ) -> None:
     """Update an E2E test project."""
     logger.info("Updating E2E project", project_id=project_id)
@@ -206,57 +285,29 @@ def update_project(
         # Get existing project
         existing_project = storage.get_project(project_id)
         if not existing_project:
-            console.print(f"[red]Project {project_id} not found[/red]")
-            raise typer.Exit(1)
+            _exit_with_error(f"Project {project_id} not found")
 
         # Check for duplicate name if name is being updated
-        if name and name != existing_project.name:
-            if storage.project_name_exists(name, exclude_id=project_id):
-                console.print(
-                    f"[red]Error: Project with name '{name}' already exists[/red]",
-                )
-                raise typer.Exit(1)
+        if (
+            name
+            and name != existing_project.name
+            and storage.project_name_exists(name, exclude_id=project_id)
+        ):
+            _exit_with_error(f"Error: Project with name '{name}' already exists")
 
         # Build update dictionary
-        updates: dict[str, Any] = {}
-        if name:
-            updates["name"] = name
-        if url:
-            updates["url"] = url
-        if status:
-            if status not in ["active", "archived", "paused"]:
-                console.print(
-                    f"[red]Error: Invalid status '{status}'. Must be active, archived, or paused[/red]",
-                )
-                raise typer.Exit(1)
-            updates["status"] = status
+        updates = _build_updates(name, url, status)
 
         if not updates:
             console.print("[yellow]No updates specified[/yellow]")
             return
 
-        # Update timestamp
-        from datetime import datetime
-
-        updates["updated_at"] = datetime.now(UTC)
-
         # Create updated project
         updated_project = existing_project.model_copy(update=updates)
         saved_project = storage.update_project(updated_project)
 
-        if output == "json":
-            console.print(json.dumps(saved_project.model_dump(mode="json"), indent=2))
-        else:
-            console.print(
-                f"[green]✓[/green] Project '{saved_project.name}' updated successfully",
-            )
-            if name:
-                console.print(f"Name: {saved_project.name}")
-            if url:
-                console.print(f"URL: {saved_project.url}")
-            if status:
-                console.print(f"Status: {saved_project.status}")
-
+        # Display results
+        _display_update_results(saved_project, output, name, url, status)
         logger.info("E2E project updated successfully", project_id=project_id)
 
     except Exception as e:
@@ -269,15 +320,10 @@ def update_project(
         raise typer.Exit(1) from e
 
 
-@app.command("delete-project")
+@app.command("delete")
 def delete_project(
     project_id: str = typer.Argument(..., help="Project ID"),
-    force: bool = typer.Option(
-        False,
-        "--force",
-        "-f",
-        help="Force deletion without confirmation",
-    ),
+    force: Annotated[bool, typer.Option("--force", "-f")] = False,
 ) -> None:
     """Delete an E2E test project."""
     logger.info("Deleting E2E project", project_id=project_id)
@@ -286,8 +332,7 @@ def delete_project(
         # Check if project exists
         project = storage.get_project(project_id)
         if not project:
-            console.print(f"[red]Project {project_id} not found[/red]")
-            raise typer.Exit(1)
+            _exit_with_error(f"Project {project_id} not found")
 
         # Confirmation prompt unless forced
         if not force:
@@ -307,8 +352,7 @@ def delete_project(
             )
             logger.info("E2E project deleted successfully", project_id=project_id)
         else:
-            console.print(f"[red]Failed to delete project {project_id}[/red]")
-            raise typer.Exit(1)
+            _exit_with_error(f"Failed to delete project {project_id}")
 
     except Exception as e:
         logger.error(
@@ -318,43 +362,6 @@ def delete_project(
         )
         console.print(f"[red]Error: {e}[/red]")
         raise typer.Exit(1) from e
-
-
-@app.command("capture")
-def capture_commands() -> None:
-    """Browser interaction capture commands (placeholder)."""
-    console.print("[yellow]Capture commands not yet implemented[/yellow]")
-    console.print("Available commands will include:")
-    console.print("  • start-capture - Start browser interaction capture")
-    console.print("  • stop-capture - Stop active capture session")
-    console.print("  • list-captures - List capture sessions")
-
-
-@app.command("generate")
-def generate_commands() -> None:
-    """Test generation commands (placeholder)."""
-    console.print("[yellow]Generate commands not yet implemented[/yellow]")
-    console.print("Available commands will include:")
-    console.print("  • generate-tests - Generate tests from capture")
-    console.print("  • list-tests - List generated tests")
-
-
-@app.command("execute")
-def execute_commands() -> None:
-    """Test execution commands (placeholder)."""
-    console.print("[yellow]Execute commands not yet implemented[/yellow]")
-    console.print("Available commands will include:")
-    console.print("  • run-tests - Execute test scenarios")
-    console.print("  • list-executions - List test executions")
-
-
-@app.command("fix")
-def fix_commands() -> None:
-    """Test fixing commands (placeholder)."""
-    console.print("[yellow]Fix commands not yet implemented[/yellow]")
-    console.print("Available commands will include:")
-    console.print("  • analyze-failures - Analyze test failures")
-    console.print("  • apply-fixes - Apply suggested fixes")
 
 
 if __name__ == "__main__":

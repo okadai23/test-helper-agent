@@ -21,7 +21,7 @@ dependencies = [
 ] # Populated by user or later steps if needed
 
 [project.scripts]
-clean-interfaces = "clean_interfaces.main:main"
+test-helper = "test_helper.main:main"
 
 [project.optional-dependencies]
 docs = [

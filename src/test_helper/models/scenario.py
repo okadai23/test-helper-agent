@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+if TYPE_CHECKING:
+    from .step import Step
 
 
 class Assertion(BaseModel):
@@ -32,13 +35,6 @@ class Assertion(BaseModel):
         return self
 
 
-# Import Step from step module to avoid circular imports
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .step import Step
-
-
 class Scenario(BaseModel):
     """E2E test scenario definition with steps and metadata."""
 
@@ -51,7 +47,11 @@ class Scenario(BaseModel):
     version: int = Field(default=1, ge=1)
     tags: list[str] = Field(default_factory=list)
     steps: list[Step]
-    assertions: list[Assertion] = Field(default_factory=list)
+
+    def _empty_assertions() -> list[Assertion]:  # type: ignore[no-redef]
+        return []
+
+    assertions: list[Assertion] = Field(default_factory=_empty_assertions)
     timeout: int = Field(default=30000, ge=1000, le=300000)  # milliseconds
     retry_count: int = Field(default=3, ge=0, le=10)
     status: Literal["draft", "active", "deprecated"] = "active"

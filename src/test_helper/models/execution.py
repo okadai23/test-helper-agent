@@ -33,7 +33,11 @@ class Execution(BaseModel):
     failed_step_id: str | None = None
     screenshots: list[str] = Field(default_factory=list)  # File paths
     video_path: str | None = None
-    logs: list[LogEntry] = Field(default_factory=list)
+
+    def _empty_logs() -> list[LogEntry]:  # type: ignore[no-redef]
+        return []
+
+    logs: list[LogEntry] = Field(default_factory=_empty_logs)
     retry_attempt: int = Field(default=1, ge=1)
     browser_info: dict[str, Any] = Field(default_factory=dict)
 
