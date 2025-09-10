@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Protocol, runtime_checkable, cast
 
 
 @dataclass(slots=True)
@@ -37,15 +37,34 @@ class OpenAIAgentAdapter:
     def _ask(self, system: str, user: str) -> str:
         try:
             # Prefer Agents SDK if available
-            from openai_agents import Agent, Message  # type: ignore[import-not-found]
+            from openai_agents import Agent as _Agent, Message as _Message  # type: ignore[import-not-found]
 
-            agent = Agent(model=self.model, client=self.client)  # type: ignore[call-arg]
-            conversation = [Message.system(system), Message.user(user)]
-            result = self._run(agent.run(conversation))  # type: ignore[attr-defined]
-            return getattr(result, "content", "") or ""
+            @runtime_checkable
+            class _AgentProto(Protocol):  # pragma: no cover - typing helper
+                def __init__(self, model: str, client: Any) -> None: ...  # noqa: D401, ANN204
+                async def run(self, messages: list[Any]) -> Any: ...  # noqa: D401, ANN201
+
+            @runtime_checkable
+            class _MessageProto(Protocol):  # pragma: no cover - typing helper
+                @staticmethod
+                def system(content: str) -> Any: ...  # noqa: D401, ANN201
+
+                @staticmethod
+                def user(content: str) -> Any: ...  # noqa: D401, ANN201
+
+            AgentCls = cast(type[_AgentProto], _Agent)
+            MessageCls = cast(type[_MessageProto], _Message)
+
+            agent: Any = AgentCls(model=self.model, client=self.client)
+            conversation: list[Any] = [
+                MessageCls.system(system),
+                MessageCls.user(user),
+            ]
+            result: Any = self._run(agent.run(conversation))
+            return cast(str, getattr(result, "content", "")) or ""
         except Exception:
             # Fallback to Chat Completions API
-            response = self._run(
+            response: Any = self._run(
                 self.client.chat.completions.create(
                     model=self.model,
                     messages=[
@@ -55,7 +74,7 @@ class OpenAIAgentAdapter:
                     temperature=0.2,
                 ),
             )
-            return response.choices[0].message.content
+            return cast(str, response.choices[0].message.content)
 
     def plan(self, context: str) -> dict[str, Any]:
         """Create a capture/generation plan as JSON string from model."""
