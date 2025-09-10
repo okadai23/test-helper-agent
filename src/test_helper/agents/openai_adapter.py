@@ -8,6 +8,7 @@ async and stream-aware.
 from __future__ import annotations
 
 import asyncio
+import importlib
 import json
 from dataclasses import dataclass
 from typing import Any, Protocol, cast, runtime_checkable
@@ -37,8 +38,9 @@ class OpenAIAgentAdapter:
     def _ask(self, system: str, user: str) -> str:
         try:
             # Prefer Agents SDK if available
-            from openai_agents import Agent as _Agent  # type: ignore[import-not-found]
-            from openai_agents import Message as _Message
+            agents_mod = importlib.import_module("openai_agents")
+            agent_class = agents_mod.Agent
+            message_class = agents_mod.Message
 
             @runtime_checkable
             class _AgentProto(Protocol):  # pragma: no cover - typing helper
@@ -53,8 +55,8 @@ class OpenAIAgentAdapter:
                 @staticmethod
                 def user(content: str) -> Any: ...
 
-            agent_cls = cast("type[_AgentProto]", _Agent)
-            message_cls = cast("type[_MessageProto]", _Message)
+            agent_cls = cast("type[_AgentProto]", agent_class)
+            message_cls = cast("type[_MessageProto]", message_class)
 
             agent: Any = agent_cls(model=self.model, client=self.client)
             conversation: list[Any] = [
