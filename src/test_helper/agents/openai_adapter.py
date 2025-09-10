@@ -35,17 +35,27 @@ class OpenAIAgentAdapter:
         return asyncio.run(coro)
 
     def _ask(self, system: str, user: str) -> str:
-        response = self._run(
-            self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user", "content": user},
-                ],
-                temperature=0.2,
-            ),
-        )
-        return response.choices[0].message.content
+        try:
+            # Prefer Agents SDK if available
+            from openai_agents import Agent, Message  # type: ignore[import-not-found]
+
+            agent = Agent(model=self.model, client=self.client)  # type: ignore[call-arg]
+            conversation = [Message.system(system), Message.user(user)]
+            result = self._run(agent.run(conversation))  # type: ignore[attr-defined]
+            return getattr(result, "content", "") or ""
+        except Exception:
+            # Fallback to Chat Completions API
+            response = self._run(
+                self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
+                    temperature=0.2,
+                ),
+            )
+            return response.choices[0].message.content
 
     def plan(self, context: str) -> dict[str, Any]:
         """Create a capture/generation plan as JSON string from model."""

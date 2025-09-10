@@ -49,6 +49,10 @@ dev = [
     "pdm>=2.12.0",
     "pre-commit>=4.2.0",
 ]
+agents = [
+    # OpenAI Agents Python SDK (optional at install time to keep CI lean)
+    "openai-agents>=0.1.0; python_version >= '3.9'",
+]
 
 [tool.uv]
 # Development dependencies are now in [project.optional-dependencies.dev]
