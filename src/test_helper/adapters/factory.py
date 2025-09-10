@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from test_helper.adapters.interfaces import OpenAIAgent, TemporalClient
+if TYPE_CHECKING:  # pragma: no cover - type imports only
+    from test_helper.adapters.interfaces import OpenAIAgent, TemporalClient
 from test_helper.utils.settings import get_e2e_settings
 
 
 def create_openai_agent(client: Any) -> OpenAIAgent:
     """Create OpenAI agent adapter based on settings."""
     settings = get_e2e_settings()
-    # Single adapter that internally prefers Agents SDK and falls back to chat completions
+    # Single adapter that prefers Agents SDK and falls back to chat completions
     from test_helper.agents.openai_adapter import OpenAIAgentAdapter
 
     return OpenAIAgentAdapter(client=client, model=settings.openai_model)

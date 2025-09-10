@@ -53,13 +53,13 @@ class OpenAIAgentAdapter:
                 @staticmethod
                 def user(content: str) -> Any: ...
 
-            AgentCls = cast("type[_AgentProto]", _Agent)
-            MessageCls = cast("type[_MessageProto]", _Message)
+            agent_cls = cast("type[_AgentProto]", _Agent)
+            message_cls = cast("type[_MessageProto]", _Message)
 
-            agent: Any = AgentCls(model=self.model, client=self.client)
+            agent: Any = agent_cls(model=self.model, client=self.client)
             conversation: list[Any] = [
-                MessageCls.system(system),
-                MessageCls.user(user),
+                message_cls.system(system),
+                message_cls.user(user),
             ]
             result: Any = self._run(agent.run(conversation))
             return cast("str", getattr(result, "content", "")) or ""
