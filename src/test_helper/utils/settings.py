@@ -292,6 +292,17 @@ class E2ESettings(BaseSettings):
         description="OpenAI model to use for agents",
     )
 
+    # Backend switching for mocks vs real SDKs
+    agent_backend: Literal["mock", "sdk"] = Field(
+        default="mock",
+        description="OpenAI agent backend (mock or sdk)",
+    )
+
+    temporal_backend: Literal["mock", "sdk"] = Field(
+        default="mock",
+        description="Temporal backend (mock or sdk)",
+    )
+
     @field_validator("default_browser")
     @classmethod
     def validate_browser(cls, v: str) -> str:
