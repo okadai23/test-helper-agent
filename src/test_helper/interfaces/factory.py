@@ -5,7 +5,6 @@ from test_helper.utils.settings import get_interface_settings
 
 from .base import BaseInterface
 from .cli import CLIInterface
-from .restapi import RestAPIInterface
 
 
 class InterfaceFactory:
@@ -27,7 +26,9 @@ class InterfaceFactory:
         if interface_type == InterfaceType.CLI:
             return CLIInterface()
         if interface_type == InterfaceType.RESTAPI:
-            return RestAPIInterface()
+            # RestAPI interface will be implemented later
+            msg = "RestAPI interface is not yet implemented"
+            raise NotImplementedError(msg)
 
         msg = f"Unknown interface type: {interface_type}"
         raise ValueError(msg)

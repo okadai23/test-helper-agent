@@ -1,0 +1,883 @@
+openapi: 3.0.3
+info:
+  title: E2E Test Automation AI Agent API
+  description: API for managing test automation projects and executing AI-driven test generation and fixes
+  version: 1.0.0
+  contact:
+    name: Test Automation Team
+    email: test-automation@example.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Development server
+  - url: https://api.test-automation.example.com/v1
+    description: Production server
+
+tags:
+  - name: Projects
+    description: Test project management
+  - name: Capture
+    description: Browser interaction capture
+  - name: Tests
+    description: Test generation and management
+  - name: Execution
+    description: Test execution and results
+  - name: Fixes
+    description: Test failure analysis and fixes
+
+paths:
+  /projects:
+    post:
+      tags: [Projects]
+      summary: Create a new test project
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+    get:
+      tags: [Projects]
+      summary: List all test projects
+      operationId: listProjects
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, archived, paused]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectList'
+
+  /projects/{project_id}:
+    get:
+      tags: [Projects]
+      summary: Get project details
+      operationId: getProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Projects]
+      summary: Update project configuration
+      operationId: updateProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Projects]
+      summary: Delete a project
+      operationId: deleteProject
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Project deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/capture:
+    post:
+      tags: [Capture]
+      summary: Start capture session
+      operationId: startCapture
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartCaptureRequest'
+      responses:
+        '201':
+          description: Capture session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{project_id}/capture/{session_id}:
+    get:
+      tags: [Capture]
+      summary: Get capture session status
+      operationId: getCaptureSession
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Capture session details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      tags: [Capture]
+      summary: Stop capture session
+      operationId: stopCapture
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Capture session stopped
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/generate:
+    post:
+      tags: [Tests]
+      summary: Generate tests from captured interactions
+      operationId: generateTests
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateTestsRequest'
+      responses:
+        '201':
+          description: Tests generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateTestsResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+
+  /projects/{project_id}/tests:
+    get:
+      tags: [Tests]
+      summary: List project tests
+      operationId: listTests
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, active, deprecated]
+        - name: tag
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScenarioList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/tests/{test_id}:
+    get:
+      tags: [Tests]
+      summary: Get test details
+      operationId: getTest
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/TestId'
+      responses:
+        '200':
+          description: Test details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags: [Tests]
+      summary: Update test scenario
+      operationId: updateTest
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/TestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTestRequest'
+      responses:
+        '200':
+          description: Test updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/execute:
+    post:
+      tags: [Execution]
+      summary: Execute tests
+      operationId: executeTests
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteTestsRequest'
+      responses:
+        '202':
+          description: Test execution started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Execution'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/executions/{execution_id}:
+    get:
+      tags: [Execution]
+      summary: Get execution results
+      operationId: getExecution
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ExecutionId'
+      responses:
+        '200':
+          description: Execution details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Execution'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/fix:
+    post:
+      tags: [Fixes]
+      summary: Analyze and fix failing tests
+      operationId: fixTests
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FixTestsRequest'
+      responses:
+        '200':
+          description: Fix proposals generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FixProposalList'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{project_id}/fix/{proposal_id}/apply:
+    post:
+      tags: [Fixes]
+      summary: Apply fix proposal
+      operationId: applyFix
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - $ref: '#/components/parameters/ProposalId'
+      responses:
+        '200':
+          description: Fix applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Scenario'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{project_id}/history:
+    get:
+      tags: [Projects]
+      summary: Get test history
+      operationId: getHistory
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 7
+            minimum: 1
+            maximum: 30
+      responses:
+        '200':
+          description: Test history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/History'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    ProjectId:
+      name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TestId:
+      name: test_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SessionId:
+      name: session_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExecutionId:
+      name: execution_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProposalId:
+      name: proposal_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CreateProjectRequest:
+      type: object
+      required: [name, url]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        url:
+          type: string
+          format: uri
+        browser_config:
+          $ref: '#/components/schemas/BrowserConfig'
+        metadata:
+          type: object
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        url:
+          type: string
+          format: uri
+        status:
+          type: string
+          enum: [active, archived, paused]
+        browser_config:
+          $ref: '#/components/schemas/BrowserConfig'
+        metadata:
+          type: object
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [active, archived, paused]
+        metadata:
+          type: object
+        browser_config:
+          $ref: '#/components/schemas/BrowserConfig'
+        test_count:
+          type: integer
+        last_execution:
+          type: string
+          format: date-time
+          nullable: true
+
+    BrowserConfig:
+      type: object
+      properties:
+        browser:
+          type: string
+          enum: [chromium, firefox, webkit]
+          default: chromium
+        headless:
+          type: boolean
+          default: true
+        viewport:
+          type: object
+          properties:
+            width:
+              type: integer
+              default: 1280
+            height:
+              type: integer
+              default: 720
+        locale:
+          type: string
+          default: en-US
+        timezone:
+          type: string
+          default: UTC
+
+    ProjectList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    StartCaptureRequest:
+      type: object
+      properties:
+        browser_config:
+          $ref: '#/components/schemas/BrowserConfig'
+
+    CaptureSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [active, completed, failed, cancelled]
+        browser_session_id:
+          type: string
+        captured_interactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapturedInteraction'
+
+    CapturedInteraction:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [click, input, navigate, scroll, keypress]
+        target_selector:
+          type: string
+        value:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+
+    GenerateTestsRequest:
+      type: object
+      properties:
+        session_id:
+          type: string
+          format: uuid
+        test_name:
+          type: string
+        include_assertions:
+          type: boolean
+          default: true
+        optimization_level:
+          type: string
+          enum: [minimal, standard, aggressive]
+          default: standard
+
+    GenerateTestsResponse:
+      type: object
+      properties:
+        tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/Scenario'
+        generation_time_ms:
+          type: integer
+
+    Scenario:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+        status:
+          type: string
+          enum: [draft, active, deprecated]
+
+    Step:
+      type: object
+      discriminator:
+        propertyName: type
+      required: [type]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [click, input, navigate, wait, assert]
+        description:
+          type: string
+          nullable: true
+
+    ScenarioList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Scenario'
+        total:
+          type: integer
+
+    UpdateTestRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/Step'
+        status:
+          type: string
+          enum: [draft, active, deprecated]
+
+    ExecuteTestsRequest:
+      type: object
+      properties:
+        test_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        browser_config:
+          $ref: '#/components/schemas/BrowserConfig'
+        parallel:
+          type: boolean
+          default: false
+        retry_failed:
+          type: boolean
+          default: true
+
+    Execution:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scenario_id:
+          type: string
+          format: uuid
+        project_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        duration_ms:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [running, passed, failed, error, timeout, skipped]
+        error_message:
+          type: string
+          nullable: true
+        screenshots:
+          type: array
+          items:
+            type: string
+
+    FixTestsRequest:
+      type: object
+      required: [execution_ids]
+      properties:
+        execution_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        auto_apply:
+          type: boolean
+          default: false
+        confidence_threshold:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.7
+
+    FixProposal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        execution_id:
+          type: string
+          format: uuid
+        scenario_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        confidence:
+          type: number
+        fix_type:
+          type: string
+          enum: [selector, wait, assertion, step_order, retry_logic]
+        description:
+          type: string
+        rationale:
+          type: string
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProposedChange'
+        auto_applicable:
+          type: boolean
+
+    ProposedChange:
+      type: object
+      properties:
+        step_id:
+          type: string
+          format: uuid
+        change_type:
+          type: string
+          enum: [replace, insert, delete, modify]
+        field:
+          type: string
+        old_value:
+          type: string
+          nullable: true
+        new_value:
+          type: string
+          nullable: true
+
+    FixProposalList:
+      type: object
+      properties:
+        proposals:
+          type: array
+          items:
+            $ref: '#/components/schemas/FixProposal'
+
+    History:
+      type: object
+      properties:
+        executions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Execution'
+        statistics:
+          type: object
+          properties:
+            total_executions:
+              type: integer
+            success_rate:
+              type: number
+            average_duration_ms:
+              type: integer
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    UnprocessableEntity:
+      description: Unprocessable entity
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - ApiKey: []
+  - BearerAuth: []

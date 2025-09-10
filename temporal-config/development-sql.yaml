@@ -1,0 +1,36 @@
+# Temporal development configuration for SQL database
+system.forceSearchAttributesCacheRefreshOnRead:
+  - value: true
+    constraints: {}
+
+system.enableCrossNamespaceCommands:
+  - value: true
+    constraints: {}
+
+frontend.enableUpdateWorkflowExecution:
+  - value: true
+    constraints: {}
+
+frontend.enableUpdateWorkflowExecutionAsyncAccepted:
+  - value: true
+    constraints: {}
+
+# Enable development features
+system.enableActivityEagerExecution:
+  - value: true
+    constraints: {}
+
+# Increase limits for development
+limit.maxIDLength:
+  - value: 1000
+    constraints: {}
+
+# Enable advanced visibility features
+system.advancedVisibilityWritingMode:
+  - value: "on"
+    constraints: {}
+
+# Enable schedule workflows
+frontend.enableSchedules:
+  - value: true
+    constraints: {}
