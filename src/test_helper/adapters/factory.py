@@ -21,7 +21,7 @@ def create_openai_agent(client: Any) -> OpenAIAgent:
 def create_temporal_client(impl: Any) -> TemporalClient:
     """Create Temporal client wrapper.
 
-    For now, reuse the WorkflowClient wrapper for uniform API.
+    When settings.temporal_backend == 'sdk', `impl` should be a temporalio.Client.
     """
     from test_helper.lib.workflow_client import WorkflowClient
 
