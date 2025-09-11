@@ -266,9 +266,11 @@ class BrowserUseMCPClient:
         # Store task as active
         self._active_tasks[task.task_id] = task
 
+        # Capture start time for duration calculation
+        started_at = datetime.now(UTC)
+
         try:
             # Placeholder implementation - actual browser-use agent execution will replace this
-            started_at = datetime.now(UTC)
 
             # Simulate task execution with some steps
             steps = [
@@ -310,12 +312,12 @@ class BrowserUseMCPClient:
         except Exception as exc:
             # Handle task execution errors
             completed_at = datetime.now(UTC)
-            duration = (completed_at - datetime.now(UTC)).total_seconds()
+            duration = (completed_at - started_at).total_seconds()
 
             return BrowserUseResult(
                 task_id=task.task_id,
                 status="failure",
-                started_at=datetime.now(UTC),
+                started_at=started_at,
                 completed_at=completed_at,
                 duration_seconds=duration,
                 steps_executed=[],
