@@ -230,12 +230,6 @@ class TestMCPClient:
         with pytest.raises(ValueError, match="Selector cannot be empty"):
             await mcp_client.fill("   ", "test value")
 
-        with pytest.raises(ValueError, match="Value cannot be empty"):
-            await mcp_client.fill("input", "")
-
-        with pytest.raises(ValueError, match="Value cannot be empty"):
-            await mcp_client.fill("input", "   ")
-
     @pytest.mark.asyncio
     async def test_fill_requires_connection(self, mcp_client: MCPClient) -> None:
         """Test fill fails without connection."""

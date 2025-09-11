@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 
 def test_create_openai_agent_respects_model_for_mock_backend() -> None:
     """Factory uses model from settings for mock backend."""
@@ -47,18 +45,26 @@ def test_create_openai_agent_respects_model_for_sdk_backend() -> None:
         assert agent.model == "gpt-4o"
 
 
-def test_create_temporal_client_wraps_impl_and_raises_on_calls() -> None:
-    """Temporal client wrapper created and methods raise for now."""
+def test_create_temporal_client_wraps_impl_and_calls_impl_start_workflow() -> None:
+    """Temporal client wrapper created and methods delegate to impl.start_workflow.
+
+    Since WorkflowClient now implements async start methods, verify delegation.
+    """
     from test_helper.adapters.factory import create_temporal_client
     from test_helper.services.workflow_client import WorkflowClient
 
+    from unittest.mock import AsyncMock, Mock
+    import asyncio
+
     impl = Mock()
+    impl.start_workflow = AsyncMock(return_value={"workflow": "run"})
+
     client = create_temporal_client(impl)
     assert isinstance(client, WorkflowClient)
 
-    # Methods are placeholders and should raise NotImplementedError for now
-    with pytest.raises(NotImplementedError):
-        client.start_capture(project_id="proj-1")  # type: ignore[call-arg]
+    # Call async methods and ensure underlying impl is invoked
+    asyncio.run(client.start_capture(project_id="proj-1"))
+    impl.start_workflow.assert_called()
 
-    with pytest.raises(NotImplementedError):
-        client.start_generate(capture_session={})  # type: ignore[call-arg]
+    asyncio.run(client.start_generate(capture_session={"project_id": "proj-1"}))
+    assert impl.start_workflow.call_count >= 2

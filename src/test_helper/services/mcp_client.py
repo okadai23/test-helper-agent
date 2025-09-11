@@ -1,4 +1,4 @@
-  """Playwright MCP client for browser automation operations."""
+"""Playwright MCP client for browser automation operations."""
 
 from __future__ import annotations
 
@@ -222,9 +222,6 @@ class MCPClient:
         if not selector.strip():
             msg = "Selector cannot be empty"
             raise ValueError(msg)
-        if not value.strip():
-            msg = "Value cannot be empty"
-            raise ValueError(msg)
 
         # Placeholder implementation - actual MCP operation will replace this
         return InteractionEvent(
@@ -292,4 +289,3 @@ class MCPClient:
 
         # Placeholder implementation - actual MCP operation will replace this
         return None
-

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -9,8 +8,8 @@ if TYPE_CHECKING:
 
 from test_helper.services.temporal_workflows import (
     E2ETestWorkflow,
-    generate_activity,
     capture_activity,
+    generate_activity,
 )
 from test_helper.services.workflow_client import WorkflowClient
 

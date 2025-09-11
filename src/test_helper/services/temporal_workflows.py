@@ -11,7 +11,8 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import Any, TypedDict, cast
 
-from temporalio import activity, workflow as _workflow
+from temporalio import activity
+from temporalio import workflow as _workflow
 
 
 class InteractionEvent(TypedDict):
