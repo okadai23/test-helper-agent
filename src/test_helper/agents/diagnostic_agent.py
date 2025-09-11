@@ -1,32 +1,33 @@
-"""Diagnostic agent skeleton for failure analysis."""
+"""Diagnostic agent for failure analysis using the OpenAI Agents SDK."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
+try:
+    # Use a try-except block for the optional dependency
+    from openai_agents import Agent
+except (ImportError, ModuleNotFoundError):
+    # Define a fallback class if the SDK is not installed
+    class Agent:  # type: ignore
+        """A mock Agent class for when the real SDK is not available."""
 
-@dataclass(slots=True)
-class DiagnosticAgent:
-    """Analyzes failing test logs and categorizes root cause."""
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            """Mock initializer."""
 
-    openai_client: Any
 
-    @property
-    def name(self) -> str:
-        """Return agent name."""
-        return "diagnostic"
+def create_diagnostic_agent() -> Agent:
+    """Creates a diagnostic agent with specific instructions.
 
-    def diagnose_failure(self, logs: list[dict[str, Any]]) -> dict[str, Any]:
-        """Categorize failure based on log messages."""
-        text = " ".join([str(entry.get("message", "")) for entry in logs])
-        category = "unknown"
-        if "not found" in text:
-            category = "selector"
-        elif "timeout" in text or "timed out" in text:
-            category = "timing"
-        elif "assert" in text:
-            category = "assertion"
-        elif "network" in text:
-            category = "network"
-        return {"category": category, "confidence": 0.5}
+    Returns:
+        An Agent instance configured for failure diagnosis.
+    """
+    return Agent(
+        name="DiagnosticAgent",
+        instructions=(
+            "You are a diagnostic tool. Your goal is to analyze test failure logs "
+            "and determine the root cause. Respond with a JSON object containing a "
+            "'category' (e.g., 'selector', 'timing', 'assertion', 'network', "
+            "'unknown') and a 'confidence' score (0.0 to 1.0)."
+        ),
+    )

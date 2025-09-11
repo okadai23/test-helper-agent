@@ -1,35 +1,33 @@
-"""Fix agent skeleton that proposes non-destructive test changes."""
+"""Fix agent that proposes non-destructive test changes using OpenAI Agents SDK."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
+try:
+    # Use a try-except block for the optional dependency
+    from openai_agents import Agent
+except (ImportError, ModuleNotFoundError):
+    # Define a fallback class if the SDK is not installed
+    class Agent:  # type: ignore
+        """A mock Agent class for when the real SDK is not available."""
 
-@dataclass(slots=True)
-class FixAgent:
-    """Suggests changes to fix failing tests (mocked)."""
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            """Mock initializer."""
 
-    openai_client: Any
-    storage: Any
 
-    @property
-    def name(self) -> str:
-        """Return agent name."""
-        return "fix"
+def create_fix_agent() -> Agent:
+    """Creates a fix agent with specific instructions.
 
-    def propose_fix(self, failure: dict[str, Any]) -> dict[str, Any]:
-        """Propose a minimal fix plan for a failure description."""
-        category = failure.get("category", "unknown")
-        changes: list[dict[str, Any]] = []
-        if category == "selector":
-            details = failure.get("details", {})
-            alt = details.get("alternatives") or ["[data-testid]\n"]
-            changes.append(
-                {
-                    "type": "modify_selector",
-                    "from": details.get("selector", "#unknown"),
-                    "to": alt[0],
-                },
-            )
-        return {"changes": changes, "category": category, "confidence": 0.5}
+    Returns:
+        An Agent instance configured for proposing test fixes.
+    """
+    return Agent(
+        name="FixAgent",
+        instructions=(
+            "You are an agent that proposes non-destructive fixes for failing tests. "
+            "Your goal is to analyze a failure description and suggest minimal, "
+            "safe changes. Respond with a JSON object containing a 'changes' list "
+            "and a 'confidence' score (0.0 to 1.0)."
+        ),
+    )
