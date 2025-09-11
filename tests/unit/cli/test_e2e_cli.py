@@ -22,7 +22,8 @@ def test_cli_e2e_generate_and_execute(tmp_path: Path) -> None:
     project_id = proj["project_id"]
 
     result = runner.invoke(
-        app, ["e2e", "generate", "--project", project_id, "--name", "smoke"],
+        app,
+        ["e2e", "generate", "--project", project_id, "--name", "smoke"],
     )
     assert result.exit_code == 0, result.output
 

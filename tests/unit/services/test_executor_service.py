@@ -33,3 +33,21 @@ def test_run_tests_with_a11y_creates_reports(tmp_path: Path) -> None:
     # a11y artifacts should be present when enabled
     assert result["a11y_json"] is not None  # type: ignore[index]
     assert result["a11y_html"] is not None  # type: ignore[index]
+
+
+def test_run_tests_with_invalid_spec_outside_tests_rejected(tmp_path: Path) -> None:
+    reset_e2e_settings()
+    s = get_e2e_settings()
+    s.e2e_data_path = tmp_path
+
+    proj = init_project(name="demo2", url="https://example.com")
+    project_id = proj["project_id"]
+
+    # Attempt to run a spec outside of tests directory
+    outside = Path(tmp_path) / "evil.spec.ts"
+    outside.write_text("// noop", encoding="utf-8")
+
+    import pytest
+
+    with pytest.raises(ValueError, match="Spec path outside"):
+        run_tests_with_a11y(project_id, [str(outside)])

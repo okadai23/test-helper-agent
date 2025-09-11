@@ -24,8 +24,22 @@ def test_emit_spec_and_patch(tmp_path: Path) -> None:
 
     # write patch next to it
     spec_rel = res["path"].split("/tests/")[-1]
-    pr = tools.emit_patch(project_id=project_id, spec_rel_path=spec_rel, diff="---\n+++")
+    pr = tools.emit_patch(
+        project_id=project_id,
+        spec_rel_path=spec_rel,
+        diff="---\n+++",
+    )
     assert pr["path"].endswith(".diff")
+
+    # Unsafe traversal should be rejected
+    import pytest
+
+    with pytest.raises(ValueError, match="outside"):
+        tools.emit_patch(
+            project_id=project_id,
+            spec_rel_path="../../x.spec.ts",
+            diff="-",
+        )
 
 
 def test_browser_tools_return_event_dict() -> None:

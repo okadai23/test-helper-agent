@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import html
 import json
-from typing import Any, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from pathlib import Path
@@ -64,7 +64,11 @@ def convert_to_html(a11y_json_path: Path, html_out_path: Path) -> None:
             parts.append("<ul>")
             for n in nodes[:10]:
                 target_list = n.get("target", [])
-                target = ", ".join(map(str, cast("list[Any]", target_list))) if isinstance(target_list, list) else str(target_list)
+                target = (
+                    ", ".join(map(str, cast("list[Any]", target_list)))
+                    if isinstance(target_list, list)
+                    else str(target_list)
+                )
                 snippet = n.get("html") or ""
                 parts.append(
                     "<li>target: <code>"

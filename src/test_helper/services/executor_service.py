@@ -49,11 +49,31 @@ def run_tests_with_a11y(project_id: str, spec_paths: list[str]) -> ExecutionResu
     report_dir = _Path(paths["reports"]) / str(uuid.uuid4())
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1) Execute Playwright tests (non-blocking failures tolerated for unit tests)
-    # Note: Only executes fixed, trusted command with static args; spec paths
-    # are discovered from our controlled project directory.
+    # 1) Validate spec paths and execute Playwright tests.
+    #    Only allow files under the project's tests directory with .spec.ts.
+    from pathlib import Path as _Path
+
+    tests_root = _Path(paths["tests"]).resolve()
+    validated_specs: list[str] = []
+    for raw in spec_paths:
+        candidate = _Path(raw)
+        candidate = (
+            candidate if candidate.is_absolute() else (tests_root / candidate)
+        ).resolve()
+        if (
+            not str(candidate).startswith(str(tests_root) + "/")
+            and candidate != tests_root
+        ):
+            msg = "Spec path outside tests directory"
+            raise ValueError(msg)
+        if candidate.suffixes[-2:] != [".spec", ".ts"] and candidate.suffix != ".ts":
+            msg = "Invalid spec file extension"
+            raise ValueError(msg)
+        validated_specs.append(str(candidate))
+
+    # Note: Only executes fixed, trusted command with static args; specs are validated above.
     with suppress(FileNotFoundError):
-        cmd = ("npx", "playwright", "test", *spec_paths, "--reporter", "list")
+        cmd = ("npx", "playwright", "test", *validated_specs, "--reporter", "list")
         subprocess.run(cmd, check=False, capture_output=True)  # noqa: S603
 
     a11y_json_path: Path | None = None

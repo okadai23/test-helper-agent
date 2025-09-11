@@ -39,14 +39,12 @@ def execute(
 ) -> None:
     """Execute specs and produce reports with optional a11y scan."""
     paths = project_paths(project)
-    spec_list: list[str] = []
-    tests_dir = Path(paths["tests"])
-    if all_specs:
-        spec_list = [str(p) for p in list(tests_dir.glob("*.spec.ts"))]
-    else:
-        first = next(iter(tests_dir.glob("*.spec.ts")), None)
-        spec_list = [str(first)] if first else []
-    result = run_tests_with_a11y(project_id=project, spec_paths=spec_list)
+    tests_dir = Path(paths["tests"]).resolve()
+    spec_paths = list(tests_dir.glob("*.spec.ts")) if all_specs else []
+    result = run_tests_with_a11y(
+        project_id=project,
+        spec_paths=[str(p) for p in spec_paths],
+    )
     typer.echo(json.dumps(result, indent=2))
 
 
@@ -55,7 +53,8 @@ def fix(
     project: Annotated[str, typer.Option("--project", help="Project ID")],
     spec: Annotated[str, typer.Option("--spec", help="Spec file name")],
     auto_apply: Annotated[
-        bool, typer.Option("--auto-apply", help="Apply if confident"),
+        bool,
+        typer.Option("--auto-apply", help="Apply if confident"),
     ] = True,
 ) -> None:
     """Propose and optionally apply fixes based on failure logs (simulated)."""
@@ -76,8 +75,11 @@ def fix(
         # Safety fallback if content wasn't changed as expected
         updated = spec_path.read_text(encoding="utf-8")
         if "data-testid" not in updated and "#submit" in updated:
-            updated = updated.replace("#submit", "[data-testid='submit']")
-            spec_path.write_text(updated, encoding="utf-8")
+            new_content = updated.replace("#submit", "[data-testid='submit']")
+            if "#submit" in new_content:
+                msg = "Fallback replacement did not apply as expected"
+                raise RuntimeError(msg)
+            spec_path.write_text(new_content, encoding="utf-8")
             typer.echo("✓ Applied fallback replacement in spec content")
         typer.echo(f"✓ Patch applied. Diff saved: {diff_path}")
     elif auto_apply:
