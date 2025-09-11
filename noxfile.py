@@ -91,7 +91,7 @@ def typing(session: Session) -> None:
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     # Ensure src is on import path in all environments (CI safety)
     session.env["PYTHONPATH"] = "src"
-    session.run("pyright")
+    session.run("pyright", "--project", "pyproject.toml")
 
 
 @nox.session(python=["3.13"], tags=["test"])
