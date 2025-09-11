@@ -14,11 +14,31 @@ import uuid
 from pathlib import Path
 from typing import Any, TypedDict
 
+from test_helper.utils.logger import get_logger
 from test_helper.utils.settings import get_e2e_settings
+
+logger = get_logger(__name__)
 
 
 def _project_root(project_id: str) -> Path:
-    """Return the absolute project root path under the configured data path."""
+    """Return the absolute project root path under the configured data path.
+
+    Validates that the given project_id is a canonical UUID string to prevent
+    path traversal via injected separators or unexpected characters.
+    """
+    from uuid import UUID
+
+    try:
+        parsed = UUID(project_id)
+    except Exception as exc:
+        msg = f"Invalid project_id format: {project_id}"
+        raise ValueError(msg) from exc
+
+    # Enforce canonical string form with hyphens to avoid alternate forms
+    if project_id != str(parsed):
+        msg = f"Invalid project_id format: {project_id}"
+        raise ValueError(msg)
+
     settings = get_e2e_settings()
     return Path(settings.e2e_data_path) / "projects" / project_id
 
@@ -56,9 +76,18 @@ def project_paths(project_id: str) -> ProjectPaths:
         "history": root / "history",
         "logs": root / "logs",
     }
-    for key in ("root", "tests", "cache", "reports", "history", "logs"):
-        path_obj = paths[key]
-        path_obj.mkdir(parents=True, exist_ok=True)
+    try:
+        for key in ("root", "tests", "cache", "reports", "history", "logs"):
+            path_obj = paths[key]
+            path_obj.mkdir(parents=True, exist_ok=True)
+    except Exception as exc:
+        logger.error(
+            "Failed to create project directories",
+            project_id=root.name,
+            error=str(exc),
+        )
+        msg = "Failed to initialize project directories"
+        raise RuntimeError(msg) from exc
     return paths
 
 
@@ -112,10 +141,19 @@ def init_project(
         },
     }
 
-    (paths["root"] / "metadata.json").write_text(
-        json.dumps(metadata, indent=2),
-        encoding="utf-8",
-    )
+    try:
+        (paths["root"] / "metadata.json").write_text(
+            json.dumps(metadata, indent=2),
+            encoding="utf-8",
+        )
+    except Exception as exc:
+        logger.error(
+            "Failed to write project metadata",
+            project_id=project_id,
+            error=str(exc),
+        )
+        msg = "Failed to initialize project metadata"
+        raise RuntimeError(msg) from exc
 
     return {
         "project_id": project_id,

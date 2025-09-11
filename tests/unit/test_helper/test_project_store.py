@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from test_helper.storage.project_store import init_project, project_paths
 from test_helper.utils.settings import reset_e2e_settings
 
@@ -26,6 +28,21 @@ def test_project_paths_create_directories(temp_dir: Path, monkeypatch: Any) -> N
     assert (paths["root"].name) == project_id
     for key in ("tests", "cache", "reports", "history", "logs"):
         assert paths[key].exists(), f"missing dir: {key}"
+
+
+def test_project_paths_invalid_project_id_raises(
+    temp_dir: Path,
+    monkeypatch: Any,
+) -> None:
+    """Invalid project_id should raise ValueError (path traversal protection)."""
+    reset_e2e_settings()
+    from test_helper.utils import settings as settings_mod
+
+    monkeypatch.setenv("E2E_DATA_PATH", str(temp_dir))
+    settings_mod.E2ESettings.instance = None
+
+    with pytest.raises(ValueError, match="Invalid project_id format"):
+        project_paths("../bad-id")
 
 
 def test_init_project_writes_metadata_and_returns_paths(
@@ -64,6 +81,23 @@ def test_init_project_writes_metadata_and_returns_paths(
     # Standard dirs exist
     for key in ("tests", "cache", "reports", "history", "logs"):
         assert Path(paths[key]).exists(), f"missing dir: {key}"
+
+
+def test_init_project_write_failure_raises(temp_dir: Path, monkeypatch: Any) -> None:
+    """Simulate failure to write metadata.json and ensure RuntimeError is raised."""
+    reset_e2e_settings()
+    from test_helper.utils import settings as settings_mod
+
+    monkeypatch.setenv("E2E_DATA_PATH", str(temp_dir))
+    settings_mod.E2ESettings.instance = None
+
+    # Make projects directory read-only to force failure during directory/metadata creation
+    projects_dir = temp_dir / "projects"
+    projects_dir.mkdir(parents=True, exist_ok=True)
+    projects_dir.chmod(0o500)
+
+    with pytest.raises(RuntimeError, match="Failed to initialize"):
+        init_project("No Write", "https://example.com")
 
 
 def test_init_project_allows_overrides(temp_dir: Path, monkeypatch: Any) -> None:
