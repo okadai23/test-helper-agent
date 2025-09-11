@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Any, ClassVar, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -282,15 +282,45 @@ class E2ESettings(BaseSettings):
     )
 
     # OpenAI settings
-    openai_api_key: str | None = Field(
+    openai_api_key: SecretStr | None = Field(
         default=None,
         description="OpenAI API key for AI agents",
     )
 
     openai_model: str = Field(
-        default="gpt-4",
+        default="gpt-4o-mini",
         description="OpenAI model to use for agents",
     )
+
+    # Backend switching for mocks vs real SDKs
+    agent_backend: Literal["mock", "sdk"] = Field(
+        default="mock",
+        description="OpenAI agent backend (mock or sdk)",
+    )
+
+    temporal_backend: Literal["mock", "sdk"] = Field(
+        default="mock",
+        description="Temporal backend (mock or sdk)",
+    )
+
+    @field_validator("openai_model")
+    @classmethod
+    def validate_openai_model(cls, v: str) -> str:
+        """Validate allowed OpenAI model names to prevent injection."""
+        allowed = {
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4.1-nano",
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+        }
+        if v not in allowed:
+            msg = f"Invalid OpenAI model: {v}. Must be one of {sorted(allowed)}"
+            raise ValueError(msg)
+        return v
 
     @field_validator("default_browser")
     @classmethod

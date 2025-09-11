@@ -63,28 +63,32 @@ def lock(session: Session) -> None:
 @nox.session(python=["3.13"], tags=["lint"])
 def lint(session: Session) -> None:
     """Run linting with Ruff."""
-    session.install("-c", constraints(session).as_posix(), "ruff")
+    # Install project with all dev dependencies to ensure consistent environment
+    session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     session.run("ruff", "check", "--fix")
 
 
 @nox.session(python=["3.13"], tags=["format"])
 def format_code(session: Session) -> None:
     """Format code with Ruff."""
-    session.install("-c", constraints(session).as_posix(), "ruff")
+    # Install project with all dev dependencies to ensure consistent environment
+    session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     session.run("ruff", "format")
 
 
 @nox.session(python=["3.13"], tags=["sort"])
 def sort(session: Session) -> None:
     """Sort imports with Ruff."""
-    session.install("-c", constraints(session).as_posix(), "ruff")
+    # Install project with all dev dependencies to ensure consistent environment
+    session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     session.run("ruff", "check", "--select", "I", "--fix")
 
 
 @nox.session(python=["3.13"], tags=["typing"])
 def typing(session: Session) -> None:
     """Run type checking with Pyright."""
-    session.install("-c", constraints(session).as_posix(), ".[dev]")
+    # Install project with all dev dependencies to ensure consistent environment
+    session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     session.run("pyright")
 
 
@@ -97,18 +101,16 @@ def test(session: Session) -> None:
     if not has_test_targets():
         session.skip("No test targets found in src directory")
 
-    session.install("-c", constraints(session).as_posix(), ".[dev]")
+    # Install project with all dev dependencies to ensure consistent environment
+    session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     session.run("pytest", "--cov=src/test_helper", f"--cov-fail-under={COVER_MIN}")
 
 
 @nox.session(python=["3.13"], tags=["security"])
 def security(session: Session) -> None:
     """Run security checks: pip-audit."""
-    session.install(
-        "-c",
-        constraints(session).as_posix(),
-        "pip-audit",
-    )
+    # Install project with all dev dependencies to ensure consistent environment
+    session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     session.run("pip-audit")
 
 

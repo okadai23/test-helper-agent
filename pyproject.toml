@@ -49,6 +49,10 @@ dev = [
     "pdm>=2.12.0",
     "pre-commit>=4.2.0",
 ]
+agents = [
+    # OpenAI Agents Python SDK (optional at install time to keep CI lean)
+    "openai-agents>=0.1.0; python_version >= '3.9'",
+]
 
 [tool.uv]
 # Development dependencies are now in [project.optional-dependencies.dev]
@@ -103,6 +107,7 @@ ignore = [
      "EXE001",  # Shebang present but file not executable (Git permission sync issues)
      "EXE002",  # File is executable but no shebang (permission issues in container)
      "N802",  # Allow uppercase function names for HTTP handler methods (do_POST, do_GET)
+     "E501",  # Line too long
  ]
  # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
@@ -114,6 +119,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S101", "PLR2004", "TRY003", "EM101"]
 "tests/helpers/pexpect_debug.py" = ["T201", "TRY300"]
+"tests/unit/agents/*.py" = ["D103"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -147,6 +153,7 @@ typeCheckingMode = "strict"
 useLibraryCodeForTypes = true
 reportMissingImports = true
 reportMissingTypeStubs = false
+extraPaths = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
