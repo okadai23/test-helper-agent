@@ -1,130 +1,75 @@
 # Logging Guide
 
-Clean Interfaces provides comprehensive logging capabilities with structured logging and multiple output formats.
+The Test Helper Agent provides comprehensive logging capabilities with structured logging and multiple output formats.
 
 ## Overview
 
-The logging system is built on:
-
--   **structlog**: For structured logging with context
--   **OpenTelemetry (optional)**: For distributed tracing context only; exporter integration removed
--   **Multiple formats**: JSON, console, and custom formatters
+The logging system is built on **structlog** to ensure all log messages are structured and enriched with context.
 
 ## Basic Configuration
 
-Configure logging using environment variables:
+Configure logging using environment variables in your `.env` file:
 
-```bash
-# Set log level
-export LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+```ini
+# Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+LOG_LEVEL=INFO
 
-# Set log format
-export LOG_FORMAT=json  # json or console
+# Set log format (json or console)
+LOG_FORMAT=json
 
-# Enable file logging
-export LOG_FILE=/path/to/app.log
+# Optional: Log to a file
+LOG_FILE_PATH=/path/to/agent.log
 ```
 
 ## Structured Logging
 
-All components use structured logging with context:
+All components use structured logging, which automatically includes context about the component generating the log.
 
 ```python
-from clean_interfaces.base import BaseComponent
+from test_helper.base import BaseComponent
 
-class MyComponent(BaseComponent):
+class MyService(BaseComponent):
     def process(self, item_id: str) -> None:
-        # Logs include component context automatically
+        # This log will automatically include component context
         self.logger.info("processing_item", item_id=item_id)
-
-        # Add temporary context
-        log = self.logger.bind(user_id="user123")
-        log.info("user_action", action="update")
 ```
-
-## OpenTelemetry Context (optional)
-
-If OpenTelemetry is installed and tracing is active, trace context (trace_id/span_id) may be included in logs. No exporter is configured by the project.
 
 ## Log Formats
 
-### JSON Format
+### JSON Format (Default)
 
-Best for production and log aggregation:
+Best for production environments and log aggregation tools (e.g., ELK Stack, Datadog).
 
 ```json
 {
-    "timestamp": "2025-01-20T12:00:00.123Z",
+    "timestamp": "2025-09-12T12:00:00.123Z",
     "level": "info",
-    "logger": "clean_interfaces.app",
-    "message": "Application started",
-    "component": "Application",
-    "trace_id": "abc123",
-    "span_id": "def456"
+    "logger": "test_helper.services.generator",
+    "message": "Generating test file",
+    "project_name": "my-app",
+    "source_capture_id": "capture-123"
 }
 ```
 
 ### Console Format
 
-Human-readable format for development:
+Human-readable format, ideal for local development.
 
 ```
-2025-01-20 12:00:00 [INFO] clean_interfaces.app: Application started component=Application
-```
-
-## Performance Logging
-
-Use the performance decorator for timing operations:
-
-```python
-from clean_interfaces.utils.logger import log_performance
-
-@log_performance
-def slow_operation(data: list[str]) -> dict[str, int]:
-    # Function execution time is automatically logged
-    return process_data(data)
-```
-
-## Error Logging
-
-Exceptions are automatically logged with full context:
-
-```python
-try:
-    risky_operation()
-except Exception as e:
-    self.logger.error("operation_failed",
-                     error=str(e),
-                     error_type=type(e).__name__)
-    raise
+2025-09-12 12:00:00 [info     ] Generating test file               project_name=my-app source_capture_id=capture-123
 ```
 
 ## Best Practices
 
-1. **Use structured logging**: Pass data as keyword arguments, not in messages
-2. **Add context**: Use `bind()` to add request IDs, user IDs, etc.
-3. **Log at appropriate levels**:
+1.  **Use Structured Arguments**: Pass data as keyword arguments to the logger, not as part of the message string.
+    ```python
+    # Good
+    logger.info("File generated", path=file_path)
 
-    - DEBUG: Detailed diagnostic information
-    - INFO: General informational messages
-    - WARNING: Warning messages for recoverable issues
-    - ERROR: Error messages for failures
-    - CRITICAL: Critical failures requiring immediate attention
+    # Bad
+    logger.info(f"File generated at {file_path}")
+    ```
 
-4. **Avoid logging sensitive data**: Never log passwords, tokens, or PII
-5. **Use consistent field names**: Standardize on field names across the application
+2.  **Log at Appropriate Levels**: Use `DEBUG` for detailed diagnostics, `INFO` for general workflow events, `WARNING` for recoverable issues, and `ERROR` for failures.
 
-## Integration with Monitoring
-
-The logging system integrates with various monitoring solutions:
-
--   **ELK Stack**: JSON logs can be ingested by Elasticsearch
--   **Datadog**: OpenTelemetry export to Datadog agent
--   **Jaeger**: Distributed tracing with OTLP export
--   **Local Development**: File-based logs for debugging
-
-## Next Steps
-
--   Configure [Environment Variables](environment.md) for your deployment
--   Learn about the [REST API](restapi.md) logging features
--   Explore the [API Reference](../api/utils.md) for logging utilities
+3.  **Avoid Logging Sensitive Data**: Never log secrets like API keys. The application configuration is designed to prevent this, but be mindful in custom code.

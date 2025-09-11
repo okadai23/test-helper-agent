@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Clean Interfaces will be documented in this file.
+All notable changes to Test Helper Agent will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2025-01-20
 
 ### Added
-- Initial release of Clean Interfaces
+- Initial release of Test Helper Agent
 - Multiple interface support (CLI and REST API)
 - Flexible configuration via environment variables
 - Structured logging with multiple output formats

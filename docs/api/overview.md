@@ -1,10 +1,10 @@
 # API Reference Overview
 
-This section provides detailed API documentation for all Clean Interfaces modules and components.
+This section provides detailed API documentation for all Test Helper Agent modules and components.
 
 ## Module Structure
 
-The Clean Interfaces package is organized into the following modules:
+The Test Helper Agent package is organized into the following modules:
 
 ### Core Modules
 
@@ -37,16 +37,16 @@ The package provides convenient imports:
 
 ```python
 # Main application
-from clean_interfaces.app import Application, create_app, run_app
+from test_helper.app import Application, create_app, run_app
 
 # Base components
-from clean_interfaces.base import BaseComponent
+from test_helper.base import BaseComponent
 
 # Types
-from clean_interfaces.types import InterfaceType
+from test_helper.types import InterfaceType
 
 # Interfaces
-from clean_interfaces.interfaces import (
+from test_helper.interfaces import (
     BaseInterface,
     CLIInterface,
     RestAPIInterface,
@@ -54,17 +54,17 @@ from clean_interfaces.interfaces import (
 )
 
 # Models
-from clean_interfaces.models.api import (
+from test_helper.models.api import (
     HealthResponse,
     WelcomeResponse,
     ErrorResponse
 )
-from clean_interfaces.models.io import WelcomeMessage
+from test_helper.models.io import WelcomeMessage
 
 # Utilities
-from clean_interfaces.utils.file_handler import FileHandler
-from clean_interfaces.utils.logger import configure_logging, get_logger
-from clean_interfaces.utils.settings import (
+from test_helper.utils.file_handler import FileHandler
+from test_helper.utils.logger import configure_logging, get_logger
+from test_helper.utils.settings import (
     get_logging_settings,
     get_interface_settings
 )
@@ -106,7 +106,7 @@ class MyComponent(BaseComponent):
 Settings use Pydantic for validation and environment variable loading:
 
 ```python
-from clean_interfaces.utils.settings import get_logging_settings
+from test_helper.utils.settings import get_logging_settings
 
 settings = get_logging_settings()
 print(settings.log_level)  # From LOG_LEVEL env var
