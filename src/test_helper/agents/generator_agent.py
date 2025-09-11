@@ -1,30 +1,33 @@
-"""Generator agent skeleton using OpenAI AgentSDK (mocked)."""
+"""Generator agent for creating Playwright tests using OpenAI Agents SDK."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
+try:
+    # Use a try-except block for the optional dependency
+    from openai_agents import Agent
+except (ImportError, ModuleNotFoundError):
+    # Define a fallback class if the SDK is not installed
+    class Agent:  # type: ignore
+        """A mock Agent class for when the real SDK is not available."""
 
-@dataclass(slots=True)
-class GeneratorAgent:
-    """Generates Playwright tests from capture data (no real LLM calls)."""
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            """Mock initializer."""
 
-    openai_client: Any
-    storage: Any
 
-    @property
-    def name(self) -> str:
-        """Return agent name."""
-        return "generator"
+def create_generator_agent() -> Agent:
+    """Creates a generator agent with specific instructions.
 
-    def generate_from_session(self, capture_session: dict[str, Any]) -> str:
-        """Return a minimal Playwright test for a capture session."""
-        _ = capture_session
-        return """import { test, expect } from '@playwright/test';
-
-test('generated example', async ({ page }) => {
-  await page.goto('https://example.com');
-  await expect(page).toBeDefined();
-});
-"""
+    Returns:
+        An Agent instance configured for Playwright test generation.
+    """
+    return Agent(
+        name="GeneratorAgent",
+        instructions=(
+            "You are an expert Playwright test generator. Your goal is to convert a "
+            "JSON object representing a user session into a valid Playwright test "
+            "script. Return only the TypeScript code for the test. Do not include "
+            "any other text or explanations."
+        ),
+    )
