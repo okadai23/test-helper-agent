@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import difflib
 import re
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from pathlib import Path
 
 from pydantic import BaseModel, Field
 
@@ -18,7 +20,10 @@ class FixProposal(BaseModel):
     rationale: str
 
 
-def propose_fixes(execution_log: str, dom_snapshot: dict[str, Any] | None = None) -> FixProposal:
+def propose_fixes(
+    execution_log: str,
+    dom_snapshot: dict[str, Any] | None = None,
+) -> FixProposal:
     """Propose locator fixes from execution log and optional DOM snapshot.
 
     Extracts messages like: "selector '<...>' not found" and proposes a
@@ -34,7 +39,11 @@ def propose_fixes(execution_log: str, dom_snapshot: dict[str, Any] | None = None
         candidates.append({"field": "selector", "old": old, "new": new_value})
 
     confidence = 0.85 if candidates else 0.0
-    return FixProposal(confidence=confidence, changes=candidates, rationale="Selector fallback")
+    return FixProposal(
+        confidence=confidence,
+        changes=candidates,
+        rationale="Selector fallback",
+    )
 
 
 def apply_patch(spec_path: Path, proposal: FixProposal) -> str:
@@ -58,5 +67,4 @@ def apply_patch(spec_path: Path, proposal: FixProposal) -> str:
     return diff
 
 
-__all__ = ["FixProposal", "propose_fixes", "apply_patch"]
-
+__all__ = ["FixProposal", "apply_patch", "propose_fixes"]
