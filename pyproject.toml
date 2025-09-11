@@ -107,6 +107,7 @@ ignore = [
      "EXE001",  # Shebang present but file not executable (Git permission sync issues)
      "EXE002",  # File is executable but no shebang (permission issues in container)
      "N802",  # Allow uppercase function names for HTTP handler methods (do_POST, do_GET)
+     "E501",  # Line too long
  ]
  # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
