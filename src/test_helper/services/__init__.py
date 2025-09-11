@@ -1,3 +1,5 @@
 """Service layer for test automation business logic."""
 
-__all__ = []
+from .mcp_client import InteractionEvent, MCPClient
+
+__all__ = ["InteractionEvent", "MCPClient"]
