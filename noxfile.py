@@ -89,6 +89,8 @@ def typing(session: Session) -> None:
     """Run type checking with Pyright."""
     # Install project with all dev dependencies to ensure consistent environment
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
+    # Ensure src is on import path in all environments (CI safety)
+    session.env["PYTHONPATH"] = "src"
     session.run("pyright")
 
 

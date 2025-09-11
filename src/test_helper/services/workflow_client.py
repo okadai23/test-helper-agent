@@ -27,9 +27,10 @@ class WorkflowClient:
             Workflow handle for the started capture workflow
 
         """
-        # Implementation placeholder - will be completed with Temporal workflows
+        # Placeholder: integrate with Temporal workflows in future
         _ = project_id  # Acknowledge parameter for future use
-        return self._impl
+        msg = "Temporal capture workflow not implemented yet"
+        raise NotImplementedError(msg)
 
     def start_generate(self, *, capture_session: dict[str, Any]) -> Any:
         """Start the generator workflow and return a handle.
@@ -41,9 +42,10 @@ class WorkflowClient:
             Workflow handle for the started generator workflow
 
         """
-        # Implementation placeholder - will be completed with Temporal workflows
+        # Placeholder: integrate with Temporal workflows in future
         _ = capture_session  # Acknowledge parameter for future use
-        return self._impl
+        msg = "Temporal generate workflow not implemented yet"
+        raise NotImplementedError(msg)
 
 
 __all__ = ["WorkflowClient"]
