@@ -23,7 +23,7 @@ def create_temporal_client(impl: Any) -> TemporalClient:
 
     When settings.temporal_backend == 'sdk', `impl` should be a temporalio.Client.
     """
-    from test_helper.lib.workflow_client import WorkflowClient
+    from test_helper.services.workflow_client import WorkflowClient
 
     return WorkflowClient(impl)
 
