@@ -232,6 +232,14 @@ class E2ESettings(BaseSettings):
         le=2160,
     )
 
+    # Playwright MCP settings
+    playwright_mcp_port: int = Field(
+        default=3001,
+        description="Port for Playwright MCP server connection",
+        ge=1024,
+        le=65535,
+    )
+
     # Test generation settings
     test_generation_timeout: int = Field(
         default=5000,
