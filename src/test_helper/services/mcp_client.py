@@ -1,4 +1,4 @@
-"""Playwright MCP client for browser automation operations."""
+  """Playwright MCP client for browser automation operations."""
 
 from __future__ import annotations
 
@@ -292,3 +292,4 @@ class MCPClient:
 
         # Placeholder implementation - actual MCP operation will replace this
         return None
+

@@ -17,7 +17,7 @@ class WorkflowClient:
         """
         self._impl = impl
 
-    def start_capture(self, *, project_id: str) -> Any:
+    async def start_capture(self, *, project_id: str) -> Any:
         """Start the capture workflow and return a handle.
 
         Args:
@@ -27,12 +27,16 @@ class WorkflowClient:
             Workflow handle for the started capture workflow
 
         """
-        # Placeholder: integrate with Temporal workflows in future
-        _ = project_id  # Acknowledge parameter for future use
-        msg = "Temporal capture workflow not implemented yet"
-        raise NotImplementedError(msg)
+        from test_helper.services.temporal_workflows import E2ETestWorkflow
 
-    def start_generate(self, *, capture_session: dict[str, Any]) -> Any:
+        return await self._impl.start_workflow(
+            E2ETestWorkflow.run,
+            project_id,
+            id=f"e2e-{project_id}",
+            task_queue="e2e-tq",
+        )
+
+    async def start_generate(self, *, capture_session: dict[str, Any]) -> Any:
         """Start the generator workflow and return a handle.
 
         Args:
@@ -42,10 +46,15 @@ class WorkflowClient:
             Workflow handle for the started generator workflow
 
         """
-        # Placeholder: integrate with Temporal workflows in future
-        _ = capture_session  # Acknowledge parameter for future use
-        msg = "Temporal generate workflow not implemented yet"
-        raise NotImplementedError(msg)
+        from test_helper.services.temporal_workflows import E2ETestWorkflow
+
+        project_id = str(capture_session.get("project_id", "default"))
+        return await self._impl.start_workflow(
+            E2ETestWorkflow.run,
+            project_id,
+            id=f"e2e-{project_id}",
+            task_queue="e2e-tq",
+        )
 
 
 __all__ = ["WorkflowClient"]
