@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import uuid
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, TypedDict
 
 from test_helper.utils.settings import get_e2e_settings
 
@@ -23,14 +23,32 @@ def _project_root(project_id: str) -> Path:
     return Path(settings.e2e_data_path) / "projects" / project_id
 
 
-def project_paths(project_id: str) -> Dict[str, Path]:
+class ProjectPaths(TypedDict):
+    """Typed dictionary of standard project directories."""
+
+    root: Path
+    tests: Path
+    cache: Path
+    reports: Path
+    history: Path
+    logs: Path
+
+
+class InitProjectResult(TypedDict):
+    """Result of project initialization containing id and resolved paths."""
+
+    project_id: str
+    paths: dict[str, str]
+
+
+def project_paths(project_id: str) -> ProjectPaths:
     """Ensure and return standard paths for a project.
 
     Returns a mapping with keys: root, tests, cache, reports, history, logs.
     Directories are created if they do not exist.
     """
     root = _project_root(project_id)
-    paths = {
+    paths: ProjectPaths = {
         "root": root,
         "tests": root / "tests",
         "cache": root / "cache",
@@ -38,12 +56,18 @@ def project_paths(project_id: str) -> Dict[str, Path]:
         "history": root / "history",
         "logs": root / "logs",
     }
-    for p in paths.values():
-        p.mkdir(parents=True, exist_ok=True)
+    for key in ("root", "tests", "cache", "reports", "history", "logs"):
+        path_obj = paths[key]
+        path_obj.mkdir(parents=True, exist_ok=True)
     return paths
 
 
-def init_project(name: str, url: str, browser: str = "chromium", **kwargs: Any) -> dict:
+def init_project(
+    name: str,
+    url: str,
+    browser: str = "chromium",
+    **kwargs: Any,
+) -> InitProjectResult:
     """Create a new project directory structure and write metadata.json.
 
     Args:
@@ -54,6 +78,7 @@ def init_project(name: str, url: str, browser: str = "chromium", **kwargs: Any) 
 
     Returns:
         A dictionary containing the new project_id and absolute paths.
+
     """
     project_id = str(uuid.uuid4())
     paths = project_paths(project_id)
@@ -66,7 +91,7 @@ def init_project(name: str, url: str, browser: str = "chromium", **kwargs: Any) 
         {"width": s.default_viewport_width, "height": s.default_viewport_height},
     )
 
-    metadata: Dict[str, Any] = {
+    metadata: dict[str, Any] = {
         "project": {
             "id": project_id,
             "name": name,
@@ -78,7 +103,9 @@ def init_project(name: str, url: str, browser: str = "chromium", **kwargs: Any) 
             },
         },
         "settings": {
-            "auto_fix_confidence_threshold": float(kwargs.get("auto_fix_confidence_threshold", 0.8)),
+            "auto_fix_confidence_threshold": float(
+                kwargs.get("auto_fix_confidence_threshold", 0.8),
+            ),
             "max_retries": int(kwargs.get("max_retries", 3)),
             "timeout_ms": int(kwargs.get("timeout_ms", 30000)),
             "parallel_execution": bool(kwargs.get("parallel_execution", True)),
@@ -94,4 +121,3 @@ def init_project(name: str, url: str, browser: str = "chromium", **kwargs: Any) 
         "project_id": project_id,
         "paths": {k: str(v) for k, v in paths.items()},
     }
-
