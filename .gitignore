@@ -14,8 +14,14 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Ignore only top-level lib directories; keep package libs under src/
+/lib/
+/lib64/
+
+# Ensure project source libs are tracked
+!src/test_helper/lib/
+!src/test_helper/lib/**
+*.pyc
 parts/
 sdist/
 var/

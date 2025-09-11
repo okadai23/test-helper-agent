@@ -89,38 +89,7 @@ def typing(session: Session) -> None:
     """Run type checking with Pyright."""
     # Install project with all dev dependencies to ensure consistent environment
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
-    # Ensure src is on import path in all environments (CI safety)
-    session.env["PYTHONPATH"] = "src"
-    # Debug: environment and import paths
-    session.log("=== Debug: Environment and Paths (typing) ===")
-    session.run("python", "-c", "import os; print('CWD:', os.getcwd())")
-    session.run(
-        "python",
-        "-c",
-        "import os; print('PYTHONPATH:', os.getenv('PYTHONPATH'))",
-    )
-    session.run(
-        "python",
-        "-c",
-        "import sys; print('sys.executable:', sys.executable)",
-    )
-    session.run("python", "-c", "import sys; print('sys.version:', sys.version)")
-    session.run(
-        "python",
-        "-c",
-        "import importlib.util as u; print('test_helper spec:', u.find_spec('test_helper'))",
-    )
-    session.run(
-        "python",
-        "-c",
-        "import sys; [print('PATH:', p) for p in sys.path]",
-    )
-    session.run("ls", "-la")
-    session.run("ls", "-la", "src")
-    session.run("ls", "-la", "src/test_helper")
-    session.run("pyright", "--version")
-    # Verbose pyright for search paths and config detection
-    session.run("pyright", "--verbose", "--project", "pyproject.toml")
+    session.run("pyright")
 
 
 @nox.session(python=["3.13"], tags=["test"])
