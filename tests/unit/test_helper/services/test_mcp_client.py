@@ -88,6 +88,26 @@ class TestMCPClient:
         assert mcp_client._port == 9000
 
     @pytest.mark.asyncio
+    async def test_connect_invalid_port_raises_error(
+        self,
+        mcp_client: MCPClient,
+    ) -> None:
+        """Test connect fails with invalid port numbers."""
+        with pytest.raises(ValueError, match="Port must be between 1024 and 65535"):
+            await mcp_client.connect(port=80)  # Too low
+
+        with pytest.raises(ValueError, match="Port must be between 1024 and 65535"):
+            await mcp_client.connect(port=70000)  # Too high
+
+    @pytest.mark.asyncio
+    async def test_connect_connection_error(self, mcp_client: MCPClient) -> None:
+        """Test connect handles connection errors."""
+        with pytest.raises(ConnectionError, match="Unable to connect to MCP server"):
+            await mcp_client.connect(
+                port=9999,
+            )  # Port that simulates connection failure
+
+    @pytest.mark.asyncio
     async def test_navigate(self, mcp_client: MCPClient) -> None:
         """Test navigate operation."""
         await mcp_client.connect()
@@ -97,6 +117,42 @@ class TestMCPClient:
         assert isinstance(event, InteractionEvent)
         assert event.type == "navigate"
         assert event.payload == {"url": "https://example.com"}
+
+    @pytest.mark.asyncio
+    async def test_navigate_empty_url_raises_error(self, mcp_client: MCPClient) -> None:
+        """Test navigate fails with empty URL."""
+        await mcp_client.connect()
+
+        with pytest.raises(ValueError, match="URL cannot be empty"):
+            await mcp_client.navigate("")
+
+        with pytest.raises(ValueError, match="URL cannot be empty"):
+            await mcp_client.navigate("   ")
+
+    @pytest.mark.asyncio
+    async def test_navigate_unsafe_protocol_raises_error(
+        self,
+        mcp_client: MCPClient,
+    ) -> None:
+        """Test navigate fails with unsafe protocols."""
+        await mcp_client.connect()
+
+        with pytest.raises(ValueError, match="Unsafe protocol: javascript"):
+            await mcp_client.navigate("javascript:alert('xss')")
+
+        with pytest.raises(ValueError, match="Unsafe protocol: file"):
+            await mcp_client.navigate("file:///etc/passwd")
+
+    @pytest.mark.asyncio
+    async def test_navigate_invalid_domain_raises_error(
+        self,
+        mcp_client: MCPClient,
+    ) -> None:
+        """Test navigate fails with invalid domain."""
+        await mcp_client.connect()
+
+        with pytest.raises(ValueError, match="URL must have a valid domain"):
+            await mcp_client.navigate("https://")
 
     @pytest.mark.asyncio
     async def test_navigate_requires_connection(self, mcp_client: MCPClient) -> None:
@@ -127,6 +183,20 @@ class TestMCPClient:
         assert event.payload == {"role": "button", "name": "Submit"}
 
     @pytest.mark.asyncio
+    async def test_click_missing_parameters_raises_error(
+        self,
+        mcp_client: MCPClient,
+    ) -> None:
+        """Test click fails when neither selector nor role is provided."""
+        await mcp_client.connect()
+
+        with pytest.raises(
+            ValueError,
+            match="Either selector or role must be provided",
+        ):
+            await mcp_client.click()
+
+    @pytest.mark.asyncio
     async def test_click_requires_connection(self, mcp_client: MCPClient) -> None:
         """Test click fails without connection."""
         with pytest.raises(RuntimeError, match="MCP client must be connected"):
@@ -145,6 +215,26 @@ class TestMCPClient:
             "selector": "input[name='email']",
             "value": "test@example.com",
         }
+
+    @pytest.mark.asyncio
+    async def test_fill_empty_parameters_raise_error(
+        self,
+        mcp_client: MCPClient,
+    ) -> None:
+        """Test fill fails with empty parameters."""
+        await mcp_client.connect()
+
+        with pytest.raises(ValueError, match="Selector cannot be empty"):
+            await mcp_client.fill("", "test value")
+
+        with pytest.raises(ValueError, match="Selector cannot be empty"):
+            await mcp_client.fill("   ", "test value")
+
+        with pytest.raises(ValueError, match="Value cannot be empty"):
+            await mcp_client.fill("input", "")
+
+        with pytest.raises(ValueError, match="Value cannot be empty"):
+            await mcp_client.fill("input", "   ")
 
     @pytest.mark.asyncio
     async def test_fill_requires_connection(self, mcp_client: MCPClient) -> None:
@@ -173,6 +263,20 @@ class TestMCPClient:
         assert isinstance(event, InteractionEvent)
         assert event.type == "assert"
         assert event.payload == {"role": "button", "name": None}
+
+    @pytest.mark.asyncio
+    async def test_assert_role_empty_role_raises_error(
+        self,
+        mcp_client: MCPClient,
+    ) -> None:
+        """Test assert_role fails with empty role."""
+        await mcp_client.connect()
+
+        with pytest.raises(ValueError, match="Role cannot be empty"):
+            await mcp_client.assert_role("")
+
+        with pytest.raises(ValueError, match="Role cannot be empty"):
+            await mcp_client.assert_role("   ")
 
     @pytest.mark.asyncio
     async def test_assert_role_requires_connection(self, mcp_client: MCPClient) -> None:

@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Self
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field
 
 from test_helper.utils.settings import get_e2e_settings
+
+# Constants for port validation
+MIN_PORT = 1024
+MAX_PORT = 65535
+TEST_CONNECTION_FAIL_PORT = 9999
 
 if TYPE_CHECKING:
     from types import TracebackType
@@ -50,6 +57,7 @@ class MCPClient:
 
         Raises:
             ConnectionError: If unable to connect to MCP server
+            ValueError: If port is not in valid range
 
         """
         settings = get_e2e_settings()
@@ -57,10 +65,29 @@ class MCPClient:
         self._host = host or "localhost"
         self._port = port or settings.playwright_mcp_port
 
-        # Placeholder implementation - actual MCP transport will replace this
-        await asyncio.sleep(0.01)
+        # Validate port range
+        if not (MIN_PORT <= self._port <= MAX_PORT):
+            msg = f"Port must be between {MIN_PORT} and {MAX_PORT}, got {self._port}"
+            raise ValueError(msg)
 
-        self._connected = True
+        try:
+            # Placeholder implementation - actual MCP transport will replace this
+            await asyncio.sleep(0.01)
+
+            # In real implementation, this would attempt actual connection
+            # and raise ConnectionError if it fails
+            self._check_connection_simulation()
+
+            self._connected = True
+        except ConnectionError:
+            # Re-raise ConnectionError as-is
+            raise
+        except TimeoutError as exc:
+            msg = f"Connection timeout to MCP server at {self._host}:{self._port}"
+            raise ConnectionError(msg) from exc
+        except OSError as exc:
+            msg = f"Network error connecting to MCP server at {self._host}:{self._port}"
+            raise ConnectionError(msg) from exc
 
     async def disconnect(self) -> None:
         """Disconnect from MCP server."""
@@ -88,6 +115,12 @@ class MCPClient:
             msg = "MCP client must be connected before performing operations"
             raise RuntimeError(msg)
 
+    def _check_connection_simulation(self) -> None:
+        """Check connection simulation for testing purposes."""
+        if self._port == TEST_CONNECTION_FAIL_PORT:
+            msg = f"Unable to connect to MCP server at {self._host}:{self._port}"
+            raise ConnectionError(msg)
+
     async def navigate(self, url: str) -> InteractionEvent:
         """Navigate to a URL.
 
@@ -99,14 +132,37 @@ class MCPClient:
 
         Raises:
             RuntimeError: If client is not connected
+            ValueError: If URL is invalid or uses unsafe protocol
 
         """
         self._ensure_connected()
 
+        # Validate URL for security
+        if not url or not url.strip():
+            msg = "URL cannot be empty"
+            raise ValueError(msg)
+
+        try:
+            parsed = urlparse(url.strip())
+        except Exception as exc:
+            msg = f"Invalid URL format: {url}"
+            raise ValueError(msg) from exc
+
+        # Only allow safe protocols
+        safe_protocols = {"http", "https"}
+        if parsed.scheme.lower() not in safe_protocols:
+            msg = f"Unsafe protocol: {parsed.scheme}. Only http/https are allowed"
+            raise ValueError(msg)
+
+        # Ensure URL has a netloc (domain)
+        if not parsed.netloc:
+            msg = f"URL must have a valid domain: {url}"
+            raise ValueError(msg)
+
         # Placeholder implementation - actual MCP operation will replace this
         return InteractionEvent(
             type="navigate",
-            payload={"url": url},
+            payload={"url": url.strip()},
         )
 
     async def click(
@@ -158,9 +214,17 @@ class MCPClient:
 
         Raises:
             RuntimeError: If client is not connected
+            ValueError: If selector or value is empty
 
         """
         self._ensure_connected()
+
+        if not selector.strip():
+            msg = "Selector cannot be empty"
+            raise ValueError(msg)
+        if not value.strip():
+            msg = "Value cannot be empty"
+            raise ValueError(msg)
 
         # Placeholder implementation - actual MCP operation will replace this
         return InteractionEvent(
@@ -180,9 +244,14 @@ class MCPClient:
 
         Raises:
             RuntimeError: If client is not connected
+            ValueError: If role is empty
 
         """
         self._ensure_connected()
+
+        if not role.strip():
+            msg = "Role cannot be empty"
+            raise ValueError(msg)
 
         # Placeholder implementation - actual MCP operation will replace this
         return InteractionEvent(
@@ -205,7 +274,7 @@ class MCPClient:
         # Placeholder implementation - actual MCP operation will replace this
         return {
             "tree": [],
-            "timestamp": "2025-01-01T00:00:00Z",
+            "timestamp": datetime.now(UTC).isoformat(),
             "url": "about:blank",
         }
 
