@@ -6,6 +6,7 @@ import typer
 from rich.console import Console
 
 from test_helper.cli.project import app as project_app
+from test_helper.cli import workflows as workflows_app
 from test_helper.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -20,6 +21,7 @@ app = typer.Typer(
 
 # Add subcommands
 app.add_typer(project_app, name="project", help="Project management commands")
+app.add_typer(workflows_app.app, name="e2e", help="E2E commands (capture/generate/execute/fix)")
 
 
 @app.command("version")

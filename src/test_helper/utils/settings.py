@@ -240,6 +240,17 @@ class E2ESettings(BaseSettings):
         le=65535,
     )
 
+    # Accessibility (a11y) scan settings
+    enable_a11y_scan: bool = Field(
+        default=True,
+        description="Enable accessibility scan using axe-core integration",
+    )
+
+    a11y_tags: list[str] = Field(
+        default_factory=lambda: ["wcag2a", "wcag2aa", "wcag21aa"],
+        description="WCAG tags to include in a11y scan",
+    )
+
     # Test generation settings
     test_generation_timeout: int = Field(
         default=5000,
