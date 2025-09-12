@@ -8,23 +8,67 @@ from __future__ import annotations
 
 import html
 import json
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, TypedDict, cast
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
     from pathlib import Path
 
 
-def _load_violations(data: dict[str, Any]) -> list[dict[str, Any]]:
+class AxeNode(TypedDict, total=False):
+    target: list[str] | str
+    html: str
+
+
+class AxeViolation(TypedDict, total=False):
+    id: str
+    impact: str
+    description: str
+    nodes: list[AxeNode]
+
+
+def _load_violations(data: dict[str, Any]) -> list[AxeViolation]:
     v_any: Any = data.get("violations", [])
     if not isinstance(v_any, list):
         return []
-    return [cast("dict[str, Any]", item) for item in v_any if isinstance(item, dict)]
+    violations: list[AxeViolation] = []
+    for item in v_any:
+        if not isinstance(item, dict):
+            continue
+        v: AxeViolation = {
+            "id": str(item.get("id", "unknown")),
+            "impact": str(item.get("impact", "unknown")),
+            "description": str(item.get("description", "")),
+            "nodes": [],
+        }
+        nodes = item.get("nodes", [])
+        if isinstance(nodes, list):
+            for n in nodes:
+                if isinstance(n, dict):
+                    node: AxeNode = {}
+                    if "target" in n:
+                        t = n.get("target")
+                        node["target"] = t if isinstance(t, list | str) else str(t)
+                    if "html" in n and isinstance(n.get("html"), str):
+                        node["html"] = cast("str", n.get("html"))
+                    v["nodes"].append(node)
+        violations.append(v)
+    return violations
 
 
-def _format_nodes(node_list_any: Any) -> list[dict[str, Any]]:
+def _format_nodes(node_list_any: Any) -> list[AxeNode]:
     if not isinstance(node_list_any, list):
         return []
-    return [cast("dict[str, Any]", n) for n in node_list_any if isinstance(n, dict)]
+    result: list[AxeNode] = []
+    for n in node_list_any:
+        if isinstance(n, dict):
+            node: AxeNode = {}
+            if "target" in n:
+                t = n.get("target")
+                node["target"] = t if isinstance(t, list | str) else str(t)
+            if "html" in n and isinstance(n.get("html"), str):
+                node["html"] = cast("str", n.get("html"))
+            result.append(node)
+    return result
 
 
 def convert_to_html(a11y_json_path: Path, html_out_path: Path) -> None:
@@ -33,8 +77,15 @@ def convert_to_html(a11y_json_path: Path, html_out_path: Path) -> None:
     if a11y_json_path.exists():
         try:
             data = json.loads(a11y_json_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
-            data = {}
+        except json.JSONDecodeError as exc:
+            # Propagate detailed error information in HTML output rather than silently swallowing
+            error_html = (
+                "<html><body><h1>Invalid a11y JSON</h1><pre>"
+                + html.escape(str(exc))
+                + "</pre></body></html>"
+            )
+            html_out_path.write_text(error_html, encoding="utf-8")
+            return
 
     violations = _load_violations(data)
 
@@ -50,9 +101,9 @@ def convert_to_html(a11y_json_path: Path, html_out_path: Path) -> None:
     parts.append(f"<p>Total: {len(violations)}</p>")
 
     for v in violations:
-        rid = html.escape(str(v.get("id", "unknown")))
-        impact = html.escape(str(v.get("impact", "unknown")))
-        desc = html.escape(str(v.get("description", "")))
+        rid = html.escape(v.get("id", "unknown"))
+        impact = html.escape(v.get("impact", "unknown"))
+        desc = html.escape(v.get("description", ""))
         parts.append("<div class='item'>")
         parts.append(
             f"<div><span class='impact'>{impact}</span> — <strong>{rid}</strong></div>",

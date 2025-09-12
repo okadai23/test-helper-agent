@@ -249,6 +249,7 @@ class E2ESettings(BaseSettings):
     a11y_tags: list[str] = Field(
         default_factory=lambda: ["wcag2a", "wcag2aa", "wcag21aa"],
         description="WCAG tags to include in a11y scan",
+    )
     # Browser-use MCP settings
     browser_use_enabled: bool = Field(
         default=True,

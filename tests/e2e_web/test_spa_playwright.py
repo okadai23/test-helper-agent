@@ -30,4 +30,3 @@ def test_spa_tasks_smoke(http_server: str, page: Page) -> None:
     # In the app, dialog is native <dialog>; emulate confirmation by pressing Enter
     page.keyboard.press("Enter")
     expect(page.get_by_test_id("task-list")).not_to_contain_text("E2E最初のタスク")
-

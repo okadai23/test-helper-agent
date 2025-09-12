@@ -31,4 +31,3 @@ def test_landing_basic_flow(http_server: str, page: Page) -> None:
     page.get_by_test_id("contact-message").fill("資料のご相談です")
     page.get_by_test_id("contact-submit").click()
     expect(page.locator("#contact-result")).to_contain_text("送信が完了")
-

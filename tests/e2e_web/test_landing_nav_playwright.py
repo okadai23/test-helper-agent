@@ -12,4 +12,3 @@ def test_landing_anchor_navigation(http_server: str, page: Page) -> None:
     # Navigate via header link to pricing
     page.get_by_test_id("nav-pricing").click()
     expect(page).to_have_url(lambda url: url.endswith("#pricing"))
-

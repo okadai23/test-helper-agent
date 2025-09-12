@@ -11,7 +11,7 @@ const state = {
 function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.tasks)); }
 function load() {
   try { state.tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); }
-  catch { state.tasks = []; }
+  catch (e) { console.warn("Corrupted tasks data in localStorage:", e); state.tasks = []; }
 }
 
 function uid() { return Math.random().toString(36).slice(2, 10); }

@@ -17,7 +17,7 @@ def test_shop_failcart_returns_500(http_server: str, page: Page) -> None:
     page.goto(f"{http_server}/shop_multipage/index.html")
     _wait_sw_ready(page)
     page.evaluate(
-        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ failCart: true, force401: false }) }); }"
+        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ failCart: true, force401: false }) }); }",
     )
 
     # Login to obtain token (cart endpoints require auth)
@@ -29,7 +29,9 @@ def test_shop_failcart_returns_500(http_server: str, page: Page) -> None:
 
     # Go cart and expect /api/cart to return 500
     page.goto(f"{http_server}/shop_multipage/cart.html")
-    resp = page.wait_for_response(lambda r: "/api/cart" in r.url and r.request.method == "GET")
+    resp = page.wait_for_response(
+        lambda r: "/api/cart" in r.url and r.request.method == "GET",
+    )
     assert resp.status == 500
 
 
@@ -38,13 +40,15 @@ def test_shop_api_delay_increases_latency(http_server: str, page: Page) -> None:
     page.goto(f"{http_server}/shop_multipage/index.html")
     _wait_sw_ready(page)
     page.evaluate(
-        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ delay: 1000 }) }); }"
+        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ delay: 1000 }) }); }",
     )
 
     # Reload and measure time for /api/products
     start = time.monotonic()
     page.reload()
-    resp = page.wait_for_response(lambda r: "/api/products" in r.url and r.request.method == "GET")
+    resp = page.wait_for_response(
+        lambda r: "/api/products" in r.url and r.request.method == "GET",
+    )
     elapsed_ms = (time.monotonic() - start) * 1000
     # Expect at least ~900ms considering processing variance
     assert resp.ok
@@ -53,5 +57,6 @@ def test_shop_api_delay_increases_latency(http_server: str, page: Page) -> None:
 
 def test_shop_product_not_found(http_server: str, page: Page) -> None:
     page.goto(f"{http_server}/shop_multipage/product.html?id=9999")
-    expect(page.get_by_test_id("product-detail")).to_contain_text("商品が見つかりません")
-
+    expect(page.get_by_test_id("product-detail")).to_contain_text(
+        "商品が見つかりません",
+    )

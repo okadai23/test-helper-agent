@@ -50,10 +50,17 @@ def apply_patch(spec_path: Path, proposal: FixProposal) -> str:
     """Apply proposed changes to a spec file and return unified diff."""
     original = spec_path.read_text(encoding="utf-8")
     patched = original
+    # Aggregate replacements and apply once to reduce multiple string scans
+    replacements: list[tuple[str, str]] = []
     for ch in proposal.changes:
         if ch.get("field") == "selector":
             old = str(ch.get("old", ""))
             new = str(ch.get("new", ""))
+            if old:
+                replacements.append((old, new))
+    if replacements:
+        # Apply sequentially but avoid re-scanning original repeatedly
+        for old, new in replacements:
             patched = patched.replace(old, new)
     diff = "\n".join(
         difflib.unified_diff(

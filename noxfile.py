@@ -103,6 +103,13 @@ def test(session: Session) -> None:
 
     # Install project with all dev dependencies to ensure consistent environment
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
+    # Ensure Playwright browser is available for e2e_web tests collected by default
+    try:
+        session.run("python", "-m", "playwright", "install", "chromium", external=True)
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed"
+        )
     session.run("pytest", "--cov=src/test_helper", f"--cov-fail-under={COVER_MIN}")
 
 
@@ -174,8 +181,10 @@ def e2e_web(session: Session) -> None:
     # Ensure chromium browser is installed (best-effort)
     try:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
-    except Exception:  # noqa: BLE001
-        session.log("playwright install chromium failed; proceeding if already installed")
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed",
+        )
     # Run tests
     targets = session.posargs or ["tests/e2e_web"]
     session.run("pytest", "-q", *targets)
@@ -187,8 +196,10 @@ def e2e_web_headed(session: Session) -> None:
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     try:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
-    except Exception:  # noqa: BLE001
-        session.log("playwright install chromium failed; proceeding if already installed")
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed",
+        )
     env = {
         "E2E_HEADED": "1",
         "E2E_SLOWMO": "200",
@@ -204,8 +215,10 @@ def e2e_web_shop_debug(session: Session) -> None:
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     try:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
-    except Exception:  # noqa: BLE001
-        session.log("playwright install chromium failed; proceeding if already installed")
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed",
+        )
     targets = session.posargs or ["tests/e2e_web/test_shop_debug_playwright.py"]
     session.run("pytest", "-q", *targets)
 
@@ -216,8 +229,10 @@ def e2e_web_trace(session: Session) -> None:
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     try:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
-    except Exception:  # noqa: BLE001
-        session.log("playwright install chromium failed; proceeding if already installed")
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed",
+        )
     env = {"E2E_TRACE": "1", **session.env}
     targets = session.posargs or ["tests/e2e_web"]
     session.run("pytest", "-q", *targets, env=env)
@@ -229,8 +244,10 @@ def e2e_web_video(session: Session) -> None:
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     try:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
-    except Exception:  # noqa: BLE001
-        session.log("playwright install chromium failed; proceeding if already installed")
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed",
+        )
     env = {"E2E_VIDEO": "1", **session.env}
     targets = session.posargs or ["tests/e2e_web"]
     session.run("pytest", "-q", *targets, env=env)
@@ -242,8 +259,10 @@ def e2e_web_video_shop(session: Session) -> None:
     session.install("-c", constraints(session).as_posix(), ".[dev,agents]")
     try:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
-    except Exception:  # noqa: BLE001
-        session.log("playwright install chromium failed; proceeding if already installed")
+    except Exception:
+        session.log(
+            "playwright install chromium failed; proceeding if already installed",
+        )
     env = {"E2E_VIDEO": "1", **session.env}
     default_targets = [
         "tests/e2e_web/test_shop_playwright.py",

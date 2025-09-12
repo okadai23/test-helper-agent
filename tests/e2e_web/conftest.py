@@ -43,7 +43,12 @@ def http_server(test_sites_root: Path) -> Iterator[str]:
             _ = conn.getresponse()
             conn.close()
             break
-        except (OSError, TimeoutError, ConnectionRefusedError, http.client.HTTPException):
+        except (
+            OSError,
+            TimeoutError,
+            ConnectionRefusedError,
+            http.client.HTTPException,
+        ):
             time.sleep(0.1)
 
     try:
@@ -73,8 +78,11 @@ def playwright_context() -> Iterator[tuple[Playwright, Browser]]:
             browser.close()
 
 
-@pytest.fixture()
-def page(playwright_context: tuple[Playwright, Browser], request: pytest.FixtureRequest) -> Iterator[Page]:
+@pytest.fixture
+def page(
+    playwright_context: tuple[Playwright, Browser],
+    request: pytest.FixtureRequest,
+) -> Iterator[Page]:
     _, browser = playwright_context
 
     # Artifacts configuration via env
