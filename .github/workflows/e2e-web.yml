@@ -1,0 +1,59 @@
+name: E2E Web (Playwright)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "latest"
+          activate-environment: true
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+
+      - name: Install Playwright browsers
+        run: |
+          uv run python -m playwright install chromium
+
+      - name: Run E2E (trace)
+        run: |
+          nox -s e2e_web_trace
+
+      - name: Upload Playwright traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: artifacts/playwright/traces
+          if-no-files-found: ignore
+
+      - name: Run E2E (video - shop only)
+        if: failure()
+        run: |
+          nox -s e2e_web_video_shop
+
+      - name: Upload Playwright videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos
+          path: artifacts/playwright/videos
+          if-no-files-found: ignore
+

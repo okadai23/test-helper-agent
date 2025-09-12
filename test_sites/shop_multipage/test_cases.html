@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme Shop — Test Cases</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif; margin:0; background:#0b1020; color:#e5e7eb; }
+      .bar { position:sticky; top:0; background:#0f172a; padding:8px; border-bottom:1px solid #1f2937; display:grid; gap:8px; }
+      .row { display:flex; gap:8px; flex-wrap:wrap; }
+      button, input, select { padding:.4rem .6rem; border-radius:6px; border:1px solid #1f2937; background:#111827; color:#e5e7eb; }
+      iframe { width:100%; height: calc(100vh - 140px); border:0; }
+      a.btn { color:#e5e7eb; text-decoration:none; padding:.4rem .6rem; border-radius:6px; border:1px solid #1f2937; background:#111827; }
+      label { display:flex; align-items:center; gap:6px; }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <div class="row">
+        <a class="btn" id="go-index" href="#">Index</a>
+        <a class="btn" id="go-cart" href="#">Cart</a>
+        <a class="btn" id="go-login" href="#">Login</a>
+        <a class="btn" id="go-checkout" href="#">Checkout</a>
+      </div>
+      <div class="row">
+        <button id="login">Login (any creds)</button>
+        <button id="logout">Logout</button>
+        <button id="seed1">Add Product#1</button>
+        <button id="seed3">Add 3x Product#2</button>
+        <button id="clear-cart">Clear Cart</button>
+      </div>
+      <div class="row">
+        <label>Debug force401 <input type="checkbox" id="force401"/></label>
+        <label>Debug failCart <input type="checkbox" id="failCart"/></label>
+        <label>Extra Delay(ms) <input type="number" id="delay" value="0" min="0" step="50"/></label>
+        <button id="apply-debug">Apply Debug</button>
+      </div>
+    </div>
+    <iframe id="app" src="about:blank" data-testid="iframe"></iframe>
+    <script>
+      const app = document.getElementById('app');
+      const base = location.href.replace(/test_cases\.html.*/, '');
+      function openPage(p) { app.src = base + p; }
+      async function api(path, opts={}) { return fetch(path, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) } }).then(r=>r.json()); }
+      function setToken(t){ if (t) localStorage.setItem('shop_token', t); else localStorage.removeItem('shop_token'); }
+
+      document.getElementById('go-index').addEventListener('click', (e)=>{ e.preventDefault(); openPage('index.html'); });
+      document.getElementById('go-cart').addEventListener('click', (e)=>{ e.preventDefault(); openPage('cart.html'); });
+      document.getElementById('go-login').addEventListener('click', (e)=>{ e.preventDefault(); openPage('login.html'); });
+      document.getElementById('go-checkout').addEventListener('click', (e)=>{ e.preventDefault(); openPage('checkout.html'); });
+
+      document.getElementById('login').addEventListener('click', async ()=>{
+        const r = await api('/api/login', { method:'POST', body: JSON.stringify({ email:'t@e.com', password:'x' }) });
+        setToken(r.token); openPage('index.html');
+      });
+      document.getElementById('logout').addEventListener('click', ()=>{ setToken(''); openPage('login.html'); });
+      document.getElementById('seed1').addEventListener('click', async ()=>{ await api('/api/cart', { method:'POST', body: JSON.stringify({ productId:1, qty:1 }) }); app.contentWindow.location.reload(); });
+      document.getElementById('seed3').addEventListener('click', async ()=>{ await api('/api/cart', { method:'POST', body: JSON.stringify({ productId:2, qty:3 }) }); app.contentWindow.location.reload(); });
+      document.getElementById('clear-cart').addEventListener('click', async ()=>{
+        const cart = await api('/api/cart');
+        for (const i of (cart.items||[])) { await api(`/api/cart/${i.productId}`, { method:'DELETE' }); }
+        app.contentWindow.location.reload();
+      });
+
+      document.getElementById('apply-debug').addEventListener('click', async ()=>{
+        const force401 = document.getElementById('force401').checked;
+        const failCart = document.getElementById('failCart').checked;
+        const delay = Number(document.getElementById('delay').value || 0);
+        await api('/api/__debug', { method:'POST', body: JSON.stringify({ force401, failCart, delay }) });
+        app.contentWindow.location.reload();
+      });
+
+      // initial
+      openPage('index.html');
+    </script>
+  </body>
+  </html>
+

@@ -103,16 +103,94 @@ uv run test-helper generate --project-name "my-test-project"
 
 ### Development Commands
 
+| Command              | Description         |
+| -------------------- | ------------------- |
+| `nox -s lint`        | Run code linting    |
+| `nox -s format_code` | Format code         |
+| `nox -s typing`      | Run type checking   |
+| `nox -s test`        | Run all tests       |
+| `nox -s security`    | Run security checks |
+| `nox -s docs`        | Build documentation |
+| `nox -s ci`          | Run all CI checks   |
+
 This project uses `nox` for task automation.
 
-| Command              | Description                               |
-| -------------------- | ----------------------------------------- |
-| `nox -s lint`        | Run code linting with Ruff.               |
-| `nox -s format_code` | Format code with Ruff.                    |
-| `nox -s typing`      | Run static type checking with Pyright.    |
-| `nox -s test`        | Run all tests with pytest.                |
-| `nox -s security`    | Run security checks with `pip-audit`.     |
-| `nox -s ci`          | Run all CI checks (lint, format, typing, test). |
+### Testing
+
+```bash
+# Run all tests
+nox -s test
+
+# Run specific test file
+uv run pytest tests/unit/clean_interfaces/test_app.py
+
+# Run with coverage
+uv run pytest --cov=src --cov-report=html
+```
+
+### E2E Web (Playwright)
+
+Sample web apps for E2E validation live under `test_sites/`. A ready-to-run Playwright template is provided.
+
+Install and run:
+
+```bash
+uv add --dev playwright pytest pytest-asyncio
+uv run python -m playwright install chromium
+uv run pytest -q tests/e2e_web
+```
+
+Docs: see `docs/development/e2e-web.md` for detailed usage and tips.
+
+Run via nox:
+
+```bash
+nox -s e2e_web
+nox -s e2e_web_headed
+nox -s e2e_web_shop_debug
+nox -s e2e_web_trace
+nox -s e2e_web_video
+```
+
+### Code Quality
+
+The project maintains high code quality standards:
+
+-   **Type Checking**: Strict Pyright type checking
+-   **Linting**: Comprehensive Ruff rules
+-   **Formatting**: Automated with Ruff formatter
+-   **Testing**: 80% minimum coverage requirement
+-   **Security**: Regular security scanning
+
+## Interface Types
+
+### CLI Interface
+
+The default interface provides a command-line interface using Typer:
+
+```bash
+# Run CLI interface
+INTERFACE_TYPE=cli uv run python -m clean_interfaces.main
+```
+
+Features:
+
+-   Interactive command-line interface
+-   Rich terminal output
+-   Help documentation
+-   Command completion
+
+### REST API Interface
+
+The REST API interface provides HTTP endpoints using FastAPI:
+
+```bash
+# Run REST API interface
+INTERFACE_TYPE=restapi uv run python -m clean_interfaces.main
+```
+
+
+
 
 ### Pre-commit Hooks
 

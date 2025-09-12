@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini Tasks — SPA</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <h1>Mini Tasks</h1>
+      <nav class="tabs" aria-label="Task Filters">
+        <a href="#/all" data-testid="tab-all" class="active">すべて</a>
+        <a href="#/active" data-testid="tab-active">未完了</a>
+        <a href="#/completed" data-testid="tab-completed">完了</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section aria-label="Task Form" class="panel">
+        <form id="task-form" data-testid="task-form">
+          <input type="text" id="task-title" placeholder="タスク名" required data-testid="task-title" />
+          <select id="task-priority" data-testid="task-priority">
+            <option value="low">低</option>
+            <option value="medium" selected>中</option>
+            <option value="high">高</option>
+          </select>
+          <button type="submit" data-testid="task-add">追加</button>
+        </form>
+      </section>
+
+      <section aria-label="Task List" class="panel">
+        <div class="controls">
+          <input type="search" id="search" placeholder="検索" data-testid="task-search" />
+          <select id="sort" data-testid="task-sort">
+            <option value="created">作成順</option>
+            <option value="priority">優先度</option>
+            <option value="title">タイトル</option>
+          </select>
+        </div>
+        <ul id="task-list" class="task-list" data-testid="task-list"></ul>
+      </section>
+
+      <dialog id="confirm-dialog">
+        <form method="dialog">
+          <p>このタスクを削除しますか？</p>
+          <menu>
+            <button value="cancel" data-testid="confirm-cancel">キャンセル</button>
+            <button value="ok" data-testid="confirm-ok">削除</button>
+          </menu>
+        </form>
+      </dialog>
+    </main>
+  </body>
+  </html>
+
