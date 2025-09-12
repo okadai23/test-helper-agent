@@ -249,6 +249,60 @@ class E2ESettings(BaseSettings):
     a11y_tags: list[str] = Field(
         default_factory=lambda: ["wcag2a", "wcag2aa", "wcag21aa"],
         description="WCAG tags to include in a11y scan",
+    # Browser-use MCP settings
+    browser_use_enabled: bool = Field(
+        default=True,
+        description="Enable browser-use MCP integration",
+    )
+
+    browser_use_mcp_port: int = Field(
+        default=3002,
+        description="Port for browser-use MCP server connection",
+        ge=1024,
+        le=65535,
+    )
+
+    browser_use_task_timeout: int = Field(
+        default=300,
+        description="Default timeout for browser-use tasks in seconds",
+        ge=10,
+        le=1800,
+    )
+
+    browser_use_max_steps: int = Field(
+        default=50,
+        description="Maximum steps for browser-use agent tasks",
+        ge=1,
+        le=200,
+    )
+
+    browser_use_llm_model: str = Field(
+        default="gpt-4o-mini",
+        description="LLM model for browser-use agent",
+    )
+
+    browser_use_temperature: float = Field(
+        default=0.1,
+        description="Temperature for browser-use LLM",
+        ge=0.0,
+        le=2.0,
+    )
+
+    browser_use_enable_screenshots: bool = Field(
+        default=True,
+        description="Enable screenshot capture in browser-use",
+    )
+
+    browser_use_retry_failed: bool = Field(
+        default=True,
+        description="Retry failed actions in browser-use",
+    )
+
+    browser_use_max_retries: int = Field(
+        default=3,
+        description="Maximum retries for failed browser-use actions",
+        ge=0,
+        le=10,
     )
 
     # Test generation settings
@@ -338,6 +392,32 @@ class E2ESettings(BaseSettings):
         }
         if v not in allowed:
             msg = f"Invalid OpenAI model: {v}. Must be one of {sorted(allowed)}"
+            raise ValueError(msg)
+        return v
+
+    @field_validator("browser_use_llm_model")
+    @classmethod
+    def validate_browser_use_llm_model(cls, v: str) -> str:
+        """Validate browser-use LLM model names to prevent injection."""
+        allowed = {
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4.1-nano",
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+            "gemini-2.5-flash",
+            "gemini-pro",
+            "claude-3-haiku",
+            "claude-3-sonnet",
+            "claude-3-opus",
+        }
+        if v not in allowed:
+            msg = (
+                f"Invalid browser-use LLM model: {v}. Must be one of {sorted(allowed)}"
+            )
             raise ValueError(msg)
         return v
 

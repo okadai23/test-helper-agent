@@ -1,209 +1,66 @@
 # Quick Start
 
-Get up and running with Clean Interfaces in minutes!
+This guide shows you how to get the Test Helper Agent running and generate your first E2E test.
 
 ## Prerequisites
 
-Before you begin, ensure you have:
+Before you begin, ensure you have completed the [Installation](./installation.md) steps, including:
 
--   ✅ Python 3.13 or higher installed
--   ✅ uv package manager installed
--   ✅ Git (for cloning the repository)
+-   ✅ Cloning the repository.
+-   ✅ Installing dependencies with `uv sync --extra dev`.
+-   ✅ Configuring your `.env` file.
+-   ✅ Starting the background services with `docker-compose up -d`.
 
-## 5-Minute Setup
+## Basic Usage
 
-### 1. Get the Code
+The primary way to interact with the agent is through the `test-helper` CLI.
 
-```bash
-git clone https://github.com/your-username/clean-interfaces.git
-cd clean-interfaces
-```
+### 1. Create a Project Workspace
 
-### 2. Install Dependencies
+First, create a new project workspace. This will be a directory where the agent stores all tests, history, and reports for a specific application.
 
 ```bash
-uv sync
+# Create a new project named "my-app"
+uv run test-helper project create --project-name "my-app"
 ```
 
-### 3. Configure the Application
+### 2. Capture a User Flow
+
+Next, instruct the agent to capture a user flow from a live URL. Provide a natural language prompt describing the actions to perform.
 
 ```bash
-cp .env.example .env
+# Tell the agent to go to a URL and perform a login
+uv run test-helper capture --project-name "my-app" \
+  --url "http://example.com/login" \
+  --prompt "Enter 'user@example.com' into the email field, 'password123' into the password field, and click the 'Log In' button."
 ```
 
-### 4. Run Your First Command
+The agent will use Playwright MCP to execute these steps in a browser.
 
-=== "CLI Interface"
+### 3. Generate the Test Code
 
-    ```bash
-    uv run python -m clean_interfaces.main
-    ```
-
-=== "REST API Interface"
-
-    ```bash
-    INTERFACE_TYPE=restapi uv run python -m clean_interfaces.main
-    ```
-
-## Basic Usage Examples
-
-### Using the CLI Interface
-
-The CLI interface provides an interactive command-line experience:
+Once the capture is complete, generate the Playwright test code from the recorded session.
 
 ```bash
-# Run with default settings
-uv run python -m clean_interfaces.main
-
-# Run with debug logging
-LOG_LEVEL=DEBUG uv run python -m clean_interfaces.main
-
-# Run with custom environment file
-uv run python -m clean_interfaces.main --dotenv dev.env
+# Generate a test file from the last capture session
+uv run test-helper generate --project-name "my-app"
 ```
 
-### Using the REST API Interface
+This will create a new `*.spec.ts` file inside the `data/projects/my-app/tests/` directory.
 
-The REST API interface starts a FastAPI server:
+### 4. Execute the Test
+
+Run the newly generated test to verify it works as expected.
 
 ```bash
-# Start the API server
-INTERFACE_TYPE=restapi uv run python -m clean_interfaces.main
-
-# The API will be available at http://localhost:8000
-# API documentation at http://localhost:8000/docs
+# Execute the tests for the "my-app" project
+uv run test-helper execute --project-name "my-app"
 ```
 
-### Testing the API
-
-Once the REST API is running, you can test it:
-
-```bash
-# Get a welcome message
-curl http://localhost:8000/
-
-# Check the health endpoint
-curl http://localhost:8000/health
-```
-
-## Configuration Examples
-
-### Development Setup
-
-Create a `dev.env` file:
-
-```ini
-INTERFACE_TYPE=cli
-LOG_LEVEL=DEBUG
-LOG_FORMAT=console
-```
-
-Run with development settings:
-
-```bash
-uv run python -m clean_interfaces.main --dotenv dev.env
-```
-
-### Production Setup
-
-Create a `prod.env` file:
-
-```ini
-INTERFACE_TYPE=restapi
-LOG_LEVEL=WARNING
-LOG_FORMAT=json
-LOG_FILE_PATH=/var/log/app.log
-OTEL_LOGS_EXPORT_MODE=otlp
-OTEL_ENDPOINT=http://collector:4317
-```
-
-Run with production settings:
-
-```bash
-uv run python -m clean_interfaces.main --dotenv prod.env
-```
-
-## Understanding the Output
-
-### Console Logging (Development)
-
-```
-2025-07-20 10:30:45 [INFO] clean_interfaces.app: Application initialized
-2025-07-20 10:30:45 [INFO] clean_interfaces.app: Starting CLI interface
-2025-07-20 10:30:45 [DEBUG] clean_interfaces.interfaces.cli: CLI ready
-```
-
-### JSON Logging (Production)
-
-```json
-{
-    "timestamp": "2025-07-20T10:30:45.123Z",
-    "level": "info",
-    "logger": "clean_interfaces.app",
-    "message": "Application initialized",
-    "interface": "restapi"
-}
-```
-
-## Common Tasks
-
-### Changing Log Level
-
-```bash
-# Debug level for detailed output
-LOG_LEVEL=DEBUG uv run python -m clean_interfaces.main
-
-# Error level for production
-LOG_LEVEL=ERROR uv run python -m clean_interfaces.main
-```
-
-### Switching Interfaces
-
-```bash
-# CLI Interface (default)
-INTERFACE_TYPE=cli uv run python -m clean_interfaces.main
-
-# REST API Interface
-INTERFACE_TYPE=restapi uv run python -m clean_interfaces.main
-```
-
-### Using Different Configurations
-
-```bash
-# Development
-uv run python -m clean_interfaces.main --dotenv dev.env
-
-# Testing
-uv run python -m clean_interfaces.main --dotenv test.env
-
-# Production
-uv run python -m clean_interfaces.main --dotenv prod.env
-```
+The agent will run the Playwright tests and output the results.
 
 ## What's Next?
 
-Now that you have Clean Interfaces running:
-
-1. **Explore the Interfaces**
-
-    - [CLI Interface Guide](guides/cli.md)
-    - [REST API Interface Guide](guides/restapi.md)
-
-2. **Learn About Configuration**
-
-    - [Configuration Guide](configuration.md)
-    - [Environment Variables](guides/environment.md)
-
-3. **Understand Logging**
-
-    - [Logging Guide](guides/logging.md)
-
-4. **Start Developing**
-    - [Development Guide](development/contributing.md)
-    - [API Reference](api/overview.md)
-
-## Getting Help
-
--   📖 Check the [full documentation](index.md)
--   🐛 Report issues on [GitHub](https://github.com/your-username/clean-interfaces/issues)
--   💬 Ask questions in [Discussions](https://github.com/your-username/clean-interfaces/discussions)
+-   **Fix Broken Tests**: Learn how to use the `fix` command to automatically repair failing tests.
+-   **Explore the Guides**: Dive deeper into the [CLI Guide](./guides/cli.md) and other documentation.
+-   **Contribute**: Check out the [Development Guide](./development/contributing.md) to learn how you can contribute to the project.

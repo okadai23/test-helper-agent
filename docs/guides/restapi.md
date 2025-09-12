@@ -1,104 +1,54 @@
 # REST API Interface Guide
 
-The REST API interface provides HTTP endpoints for interacting with the Clean Interfaces application.
+The REST API interface provides HTTP endpoints for interacting with the Test Helper Agent programmatically.
 
 ## Overview
 
-The REST API interface is built using FastAPI and provides a RESTful web service with automatic API documentation.
+The REST API is built using FastAPI and is designed for integration with other systems, such as CI/CD pipelines or custom dashboards.
 
 ## Running the REST API
 
-To run the application with the REST API interface:
+To run the application with the REST API interface, you need to set the `INTERFACE_TYPE` environment variable.
 
 ```bash
-# Set the interface type
+# Set the interface type to use the REST API
 export INTERFACE_TYPE=restapi
 
-# Run the application
-python -m clean_interfaces.main
-
-# Or use uvicorn directly
-uvicorn clean_interfaces.main:app --reload
+# Run the application using a web server like Uvicorn
+uv run uvicorn test_helper.app:create_app --factory --reload
 ```
 
-## Available Endpoints
-
-### Root Endpoint
-
-- **GET `/`** - Redirects to the API documentation
-
-### Health Check
-
-- **GET `/health`** - Returns the health status of the application
-
-```bash
-curl http://localhost:8000/health
-```
-
-Response:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-01-20T12:00:00Z"
-}
-```
-
-### Welcome Endpoint
-
-- **GET `/api/v1/welcome`** - Returns a welcome message
-
-```bash
-curl http://localhost:8000/api/v1/welcome
-```
-
-Response:
-```json
-{
-  "message": "Welcome to Clean Interfaces!",
-  "hint": "Type --help for more information",
-  "version": "0.1.0"
-}
-```
+The API will be available at `http://localhost:8000` by default.
 
 ## API Documentation
 
-The REST API automatically generates interactive documentation:
+FastAPI automatically generates interactive API documentation.
 
-- **Swagger UI**: Available at `http://localhost:8000/docs`
-- **ReDoc**: Available at `http://localhost:8000/redoc`
+-   **Swagger UI**: `http://localhost:8000/docs`
+-   **ReDoc**: `http://localhost:8000/redoc`
 
-## Configuration
+## Available Endpoints
 
-The REST API can be configured using environment variables:
+Endpoints are organized by project.
 
-- `HOST`: Host to bind to (default: "0.0.0.0")
-- `PORT`: Port to bind to (default: 8000)
-- `LOG_LEVEL`: Logging level (default: "INFO")
+### Health Check
 
-## Error Handling
+-   **GET `/health`**: Returns the health status of the application.
 
-The API returns standard HTTP status codes:
+    ```bash
+    curl http://localhost:8000/health
+    ```
 
-- `200 OK`: Successful request
-- `400 Bad Request`: Invalid request parameters
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Server error
+### Projects
 
-Error responses follow a consistent format:
+-   **POST `/api/v1/projects`**: Create a new project workspace.
+-   **GET `/api/v1/projects`**: List all existing projects.
 
-```json
-{
-  "error": "Resource not found",
-  "detail": "The requested endpoint does not exist"
-}
-```
+### Capture & Generation
+
+-   **POST `/api/v1/projects/{project_name}/capture`**: Start a new capture session.
+-   **POST `/api/v1/projects/{project_name}/generate`**: Generate a test from a capture.
 
 ## Authentication
 
-Currently, the REST API does not implement authentication. This can be added as needed for your specific use case.
-
-## Next Steps
-
-- Explore the [API Reference](../api/interfaces.md) for detailed interface documentation
-- Learn about [Logging](logging.md) configuration
-- Configure [Environment Variables](environment.md)
+Currently, the REST API does not implement authentication. It is expected to be run in a trusted environment. For production use, it should be placed behind a reverse proxy that can handle authentication and TLS termination.
