@@ -99,9 +99,8 @@ def convert_to_html(a11y_json_path: Path, html_out_path: Path) -> None:
         )
         if desc:
             parts.append(f"<div>{desc}</div>")
-        nodes = v.nodes if isinstance(v.nodes, list) else []
-        if not nodes:
-            nodes = _format_nodes(cast("Any", getattr(v, "nodes", [])))
+        nodes_input: Any = v.nodes
+        nodes = nodes_input if isinstance(nodes_input, list) else []
         if nodes:
             parts.append("<ul>")
             for n in nodes[:10]:

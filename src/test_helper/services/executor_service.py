@@ -81,7 +81,8 @@ def run_tests_with_a11y(project_id: str, spec_paths: list[str]) -> ExecutionResu
             "--reporter",
             "list",
         )
-        subprocess.run(cmd, check=False, capture_output=True)  # noqa: S603
+        # S603 suppressed previously; we keep a fixed-arg tuple call (no shell=True)
+        subprocess.run(cmd, check=False, capture_output=True)
 
     a11y_json_path: Path | None = None
     a11y_html_path: Path | None = None

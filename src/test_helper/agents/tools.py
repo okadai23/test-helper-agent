@@ -63,7 +63,7 @@ def emit_patch(project_id: str, spec_rel_path: str, diff: str) -> dict[str, str]
     spec_path = (base / spec_rel_path).resolve()
     try:
         spec_path.relative_to(base)
-    except Exception as exc:  # ValueError on outside; keep broad for PathLike errors
+    except (ValueError, RuntimeError) as exc:
         msg = "spec_rel_path resolves outside project tests directory"
         raise ValueError(msg) from exc
     # Enforce only .spec.ts files
