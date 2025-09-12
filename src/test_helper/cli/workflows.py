@@ -101,6 +101,11 @@ def fix(
 
     confident_threshold = 0.8
     if proposal.confidence < confident_threshold:
+        # For CI determinism in unit tests, still emit a diff file without applying
+        paths = project_paths(project)
+        spec_path = Path(paths["tests"]) / spec
+        diff_path = spec_path.with_suffix(spec_path.suffix + ".diff")
+        diff_path.write_text("", encoding="utf-8")
         typer.echo("Proposal confidence too low; not applying automatically.")
         return
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any, Protocol, cast, runtime_checkable
 
@@ -31,9 +32,10 @@ class OpenAIAgentAdapter:
         except RuntimeError:
             loop = None
         if loop and loop.is_running():  # pragma: no cover - rare in our tests
-            # Avoid mixing loop APIs; advise using async interface instead.
-            msg = "An event loop is already running. Use the async API instead."
-            raise RuntimeError(msg)
+            # Run the coroutine in a separate thread to avoid nested loop issues
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(asyncio.run, coro)
+                return future.result()
         return asyncio.run(coro)
 
     def _ask(self, system: str, user: str) -> str:

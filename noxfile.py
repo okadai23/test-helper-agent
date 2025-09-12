@@ -108,7 +108,7 @@ def test(session: Session) -> None:
         session.run("python", "-m", "playwright", "install", "chromium", external=True)
     except Exception:
         session.log(
-            "playwright install chromium failed; proceeding if already installed"
+            "playwright install chromium failed; proceeding if already installed",
         )
     session.run("pytest", "--cov=src/test_helper", f"--cov-fail-under={COVER_MIN}")
 

@@ -9,6 +9,7 @@ from __future__ import annotations
 import html
 import json
 from typing import TYPE_CHECKING, Any, cast
+
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
@@ -100,7 +101,7 @@ def convert_to_html(a11y_json_path: Path, html_out_path: Path) -> None:
             parts.append(f"<div>{desc}</div>")
         nodes = v.nodes if isinstance(v.nodes, list) else []
         if not nodes:
-            nodes = _format_nodes(cast(Any, getattr(v, "nodes", [])))
+            nodes = _format_nodes(cast("Any", getattr(v, "nodes", [])))
         if nodes:
             parts.append("<ul>")
             for n in nodes[:10]:
