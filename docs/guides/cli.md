@@ -1,280 +1,100 @@
 # CLI Interface Guide
 
-The Command Line Interface (CLI) provides an interactive way to work with Clean Interfaces.
+The Command Line Interface (CLI) is the primary way to interact with the Test Helper Agent.
 
 ## Overview
 
-The CLI interface is built using [Typer](https://typer.tiangolo.com/), providing:
+The CLI is built using [Typer](https://typer.tiangolo.com/) and provides a structured set of commands to manage the entire E2E test lifecycle.
 
-- Rich terminal output with colors and formatting
-- Interactive prompts and confirmations
-- Automatic help generation
-- Command completion support
+## Running Commands
 
-## Running the CLI
-
-### Basic Usage
+All commands are run through the `test-helper` entrypoint using `uv`.
 
 ```bash
-# Run with default settings
-uv run python -m clean_interfaces.main
-
-# Run with custom environment
-uv run python -m clean_interfaces.main --dotenv custom.env
-
-# Show help
-uv run python -m clean_interfaces.main --help
+# Show the main help message
+uv run test-helper --help
 ```
 
-### Setting CLI as Default
+This will display the main command groups available:
 
-The CLI is the default interface, but you can explicitly set it:
+-   `project`: Manage project workspaces.
+-   `capture`: Capture user flows and generate interaction traces.
+-   `generate`: Generate Playwright test code from captures.
+-   `execute`: Run tests.
+-   `fix`: Automatically fix broken tests.
 
-```ini
-# .env
-INTERFACE_TYPE=cli
-```
+## Command Examples
 
-## CLI Features
+### `project`
 
-### Interactive Mode
-
-When you run the CLI, it starts in interactive mode:
-
-```
-Welcome to Clean Interfaces CLI!
-Type 'help' for available commands.
-
-> help
-Available commands:
-  - hello: Display a welcome message
-  - status: Show application status
-  - exit: Exit the application
-```
-
-### Command Examples
-
-#### Hello Command
-
-```
-> hello
-Hello from Clean Interfaces!
-Current time: 2025-07-20 10:30:45
-```
-
-#### Status Command
-
-```
-> status
-Application Status:
-- Interface: CLI
-- Version: 0.1.0
-- Uptime: 00:05:23
-- Log Level: INFO
-```
-
-## Configuration for CLI
-
-### Recommended Development Settings
-
-```ini
-# dev.env for CLI development
-INTERFACE_TYPE=cli
-LOG_LEVEL=DEBUG
-LOG_FORMAT=console  # Human-readable output
-```
-
-### Production CLI Settings
-
-```ini
-# prod.env for CLI production
-INTERFACE_TYPE=cli
-LOG_LEVEL=WARNING
-LOG_FORMAT=json
-LOG_FILE_PATH=/var/log/cli.log
-```
-
-## Advanced CLI Usage
-
-### Command-Line Arguments
-
-The main entry point supports these arguments:
+Manage workspaces for different applications under test.
 
 ```bash
-# Specify custom .env file
-uv run python -m clean_interfaces.main --dotenv /path/to/config.env
+# Create a new project
+uv run test-helper project create --project-name "my-e-commerce-app"
 
-# Short form
-uv run python -m clean_interfaces.main -e config.env
+# List all projects
+uv run test-helper project list
 ```
 
-### Environment Overrides
+### `capture`
 
-Override specific settings without modifying files:
+Start a browser session to record a user flow based on a natural language prompt.
 
 ```bash
-# Temporary debug mode
-LOG_LEVEL=DEBUG uv run python -m clean_interfaces.main
-
-# Change log format
-LOG_FORMAT=plain uv run python -m clean_interfaces.main
+# Capture a login sequence
+uv run test-helper capture --project-name "my-e-commerce-app" \
+  --url "https://my-app.com/login" \
+  --prompt "Log in with username 'test' and password 'password'."
 ```
 
-## CLI Development
+### `generate`
 
-### Adding New Commands
-
-To add new commands to the CLI, modify the `CLIInterface` class:
-
-```python
-# src/clean_interfaces/interfaces/cli.py
-
-class CLIInterface(BaseInterface):
-    def run(self) -> None:
-        """Run the CLI interface."""
-        # Add your command logic here
-```
-
-### Custom Prompts
-
-The CLI uses rich prompts for user interaction:
-
-```python
-from rich.prompt import Prompt, Confirm
-
-# Text input
-name = Prompt.ask("Enter your name")
-
-# Confirmation
-if Confirm.ask("Do you want to continue?"):
-    # Continue processing
-```
-
-### Styling Output
-
-Use Rich for formatted output:
-
-```python
-from rich.console import Console
-from rich.table import Table
-
-console = Console()
-
-# Colored output
-console.print("Success!", style="green bold")
-
-# Tables
-table = Table(title="Status")
-table.add_column("Property")
-table.add_column("Value")
-table.add_row("Interface", "CLI")
-console.print(table)
-```
-
-## Error Handling
-
-The CLI provides user-friendly error messages:
-
-```
-> invalid_command
-Error: Unknown command 'invalid_command'
-Type 'help' for available commands.
-
-> exit
-Goodbye!
-```
-
-## Logging in CLI Mode
-
-### Console Logging
-
-With `LOG_FORMAT=console`, logs appear inline:
-
-```
-2025-07-20 10:30:45 [INFO] Starting CLI interface
-2025-07-20 10:30:46 [DEBUG] Command received: hello
-2025-07-20 10:30:46 [INFO] Executing hello command
-```
-
-### JSON Logging
-
-With `LOG_FORMAT=json`, logs are structured:
-
-```json
-{"timestamp": "2025-07-20T10:30:45Z", "level": "info", "message": "Starting CLI interface"}
-```
-
-## Tips and Tricks
-
-### 1. Enable Debug Logging
-
-For troubleshooting:
+Generate a Playwright test file from a captured session.
 
 ```bash
-LOG_LEVEL=DEBUG LOG_FORMAT=console uv run python -m clean_interfaces.main
+# Generate a test from the latest capture
+uv run test-helper generate --project-name "my-e-commerce-app"
 ```
 
-### 2. Pipe Output
+### `execute`
 
-Useful for scripting:
+Run the generated Playwright tests.
 
 ```bash
-echo "hello" | uv run python -m clean_interfaces.main
+# Run all tests for a project
+uv run test-helper execute --project-name "my-e-commerce-app"
 ```
 
-### 3. Custom Configurations
+### `fix`
 
-Create task-specific configs:
-
-```ini
-# data-import.env
-INTERFACE_TYPE=cli
-LOG_LEVEL=INFO
-LOG_FILE_PATH=imports.log
-```
-
-### 4. Shell Integration
-
-Add an alias for convenience:
+Attempt to automatically repair tests that failed during the last execution.
 
 ```bash
-alias ci='uv run python -m clean_interfaces.main'
+# Automatically fix failing tests
+uv run test-helper fix --project-name "my-e-commerce-app" --auto-apply
 ```
 
-## Common Issues
+## Advanced Usage
 
-### Terminal Encoding
+### Overriding Environment Variables
 
-If you see encoding issues:
+You can override settings for a single command run:
 
 ```bash
-export PYTHONIOENCODING=utf-8
-uv run python -m clean_interfaces.main
+# Use a different model for a specific capture task
+AGENT_MODEL=gpt-5-nano uv run test-helper capture --project-name "my-app" --prompt "..."
 ```
 
-### Color Output
+### Shell Integration
 
-If colors don't appear:
+For convenience, you can add a shell alias:
 
 ```bash
-# Force color output
-export FORCE_COLOR=1
-uv run python -m clean_interfaces.main
+# Add to your .bashrc or .zshrc
+alias tha='uv run test-helper'
+
+# Now you can run commands like this:
+tha project list
+tha capture --project-name "my-app" --prompt "..."
 ```
-
-### Input Buffer
-
-For large inputs:
-
-```bash
-# Increase buffer size
-export PYTHONUNBUFFERED=1
-uv run python -m clean_interfaces.main
-```
-
-## Next Steps
-
-- Learn about the [REST API Interface](restapi.md)
-- Configure [Logging](logging.md)
-- Explore [Environment Variables](environment.md)
-- Read the [API Reference](../api/interfaces.md)

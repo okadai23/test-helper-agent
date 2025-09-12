@@ -1,5 +1,5 @@
 [project]
-name = "clean-interfaces"
+name = "test-helper-agent"
 version = "0.1.0"
 description = "A test project for verification"
 readme = "README.md"
@@ -17,6 +17,7 @@ dependencies = [
     "openai>=1.52.0",
     "temporalio>=1.8.0",
     "playwright>=1.48.0",
+    "browser-use>=0.7.0",
     "httpx>=0.28.1",
 ] # Populated by user or later steps if needed
 

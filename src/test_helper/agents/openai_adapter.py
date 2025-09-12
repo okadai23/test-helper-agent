@@ -19,7 +19,7 @@ class OpenAIAgentAdapter:
     """Adapter for orchestrating agent prompts with OpenAI SDK."""
 
     client: Any
-    model: str = "gpt-4o-mini"
+    model: str = "gpt-5"
 
     def _run(self, coro: Any) -> Any:
         """Run an async client call in a temporary event loop if needed.
