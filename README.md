@@ -155,6 +155,30 @@ uv run pytest tests/unit/clean_interfaces/test_app.py
 uv run pytest --cov=src --cov-report=html
 ```
 
+### E2E Web (Playwright)
+
+Sample web apps for E2E validation live under `test_sites/`. A ready-to-run Playwright template is provided.
+
+Install and run:
+
+```bash
+uv add --dev playwright pytest pytest-asyncio
+uv run python -m playwright install chromium
+uv run pytest -q tests/e2e_web
+```
+
+Docs: see `docs/development/e2e-web.md` for detailed usage and tips.
+
+Run via nox:
+
+```bash
+nox -s e2e_web
+nox -s e2e_web_headed
+nox -s e2e_web_shop_debug
+nox -s e2e_web_trace
+nox -s e2e_web_video
+```
+
 ### Code Quality
 
 The project maintains high code quality standards:
