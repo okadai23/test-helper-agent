@@ -377,6 +377,14 @@ class E2ESettings(BaseSettings):
         description="Temporal backend (mock or sdk)",
     )
 
+    # Agent fetch limits
+    agent_fetch_max_chars: int = Field(
+        default=20000,
+        description="Max characters to return from fetch tool",
+        ge=1000,
+        le=200000,
+    )
+
     @field_validator("openai_model")
     @classmethod
     def validate_openai_model(cls, v: str) -> str:

@@ -14,6 +14,13 @@ from typing import Any, TypedDict, cast
 from temporalio import activity
 from temporalio import workflow as _workflow
 
+# Re-export Agent workflow for consumers using this module as a facade
+try:
+    from test_helper.services.agent_workflows import AgentWorkflow, TASK_QUEUE
+except Exception:  # pragma: no cover - agent extra may not be installed
+    AgentWorkflow = None  # type: ignore[assignment]
+    TASK_QUEUE = "agent-tq"  # default name when agent is available
+
 
 class InteractionEvent(TypedDict):
     """Minimal interaction event structure used between activities."""
@@ -111,4 +118,7 @@ __all__ = [
     "InteractionEvent",
     "capture_activity",
     "generate_activity",
+    # Agent integration (exposed for consumer convenience)
+    "AgentWorkflow",
+    "TASK_QUEUE",
 ]
