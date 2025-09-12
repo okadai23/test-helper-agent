@@ -22,7 +22,7 @@ def test_shop_checkout_fails_with_failcart(http_server: str, page: Page) -> None
 
     # Enable failCart (also affects checkout)
     page.evaluate(
-        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ failCart: true }) }); }"
+        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ failCart: true }) }); }",
     )
 
     # Proceed to checkout and expect /api/checkout to return 500
@@ -30,8 +30,9 @@ def test_shop_checkout_fails_with_failcart(http_server: str, page: Page) -> None
     page.get_by_test_id("checkout-name").fill("田中 太郎")
     page.get_by_test_id("checkout-address").fill("東京都千代田区1-2-3")
 
-    with page.expect_response(lambda r: "/api/checkout" in r.url and r.request.method == "POST") as resp_info:
+    with page.expect_response(
+        lambda r: "/api/checkout" in r.url and r.request.method == "POST",
+    ) as resp_info:
         page.get_by_test_id("checkout-submit").click()
     resp = resp_info.value
     assert resp.status == 500
-

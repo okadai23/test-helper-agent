@@ -20,4 +20,3 @@ def test_spa_deeplink_completed_filter(http_server: str, page: Page) -> None:
     # In fixtures, "レビュー" is done, "資料ドラフト作成" is not done
     expect(page.get_by_test_id("task-list")).to_contain_text("レビュー")
     expect(page.get_by_test_id("task-list")).not_to_contain_text("資料ドラフト作成")
-

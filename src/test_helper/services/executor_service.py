@@ -46,7 +46,7 @@ def run_tests_with_a11y(project_id: str, spec_paths: list[str]) -> ExecutionResu
     paths = project_paths(project_id)
     from pathlib import Path as _Path
 
-    report_dir = _Path(paths["reports"]) / str(uuid.uuid4())
+    report_dir = _Path(paths["reports"]).resolve() / str(uuid.uuid4())
     report_dir.mkdir(parents=True, exist_ok=True)
 
     # 1) Validate spec paths and execute Playwright tests.
@@ -60,21 +60,29 @@ def run_tests_with_a11y(project_id: str, spec_paths: list[str]) -> ExecutionResu
         candidate = (
             candidate if candidate.is_absolute() else (tests_root / candidate)
         ).resolve()
-        if (
-            not str(candidate).startswith(str(tests_root) + "/")
-            and candidate != tests_root
-        ):
+        try:
+            candidate.relative_to(tests_root)
+        except Exception as exc:
             msg = "Spec path outside tests directory"
-            raise ValueError(msg)
-        if candidate.suffixes[-2:] != [".spec", ".ts"] and candidate.suffix != ".ts":
-            msg = "Invalid spec file extension"
+            raise ValueError(msg) from exc
+        if candidate.suffixes[-2:] != [".spec", ".ts"]:
+            msg = "Invalid spec file extension; only .spec.ts is allowed"
             raise ValueError(msg)
         validated_specs.append(str(candidate))
 
     # Note: Only executes fixed, trusted command with static args; specs are validated above.
     with suppress(FileNotFoundError):
-        cmd = ("npx", "playwright", "test", *validated_specs, "--reporter", "list")
-        subprocess.run(cmd, check=False, capture_output=True)  # noqa: S603
+        # Use tuple invocation with fixed executable and args to avoid shell injection
+        cmd: tuple[str, ...] = (
+            "npx",
+            "playwright",
+            "test",
+            *validated_specs,
+            "--reporter",
+            "list",
+        )
+        # S603 suppressed previously; we keep a fixed-arg tuple call (no shell=True)
+        subprocess.run(cmd, check=False, capture_output=True)
 
     a11y_json_path: Path | None = None
     a11y_html_path: Path | None = None

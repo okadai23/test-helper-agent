@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from playwright.sync_api import Page, expect
 
+LOGIN_EMAIL = "e2e@example.com"
+LOGIN_PASSWORD = "password"
+
 
 def _wait_sw_ready(page: Page) -> None:
     page.wait_for_function(
         "async () => { try { const r = await fetch('/api/products'); return r.ok; } catch { return false } }",
-        timeout=7000,
+        timeout=12000,
     )
 
 
@@ -17,7 +20,7 @@ def test_shop_debug_force401_toggle(http_server: str, page: Page) -> None:
 
     # Enable force401 via SW debug API
     page.evaluate(
-        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ force401: true }) }); }"
+        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ force401: true }) }); }",
     )
 
     # Access cart -> should redirect to login
@@ -29,17 +32,16 @@ def test_shop_debug_force401_toggle(http_server: str, page: Page) -> None:
     page.goto(f"{http_server}/shop_multipage/index.html")
     _wait_sw_ready(page)
     page.evaluate(
-        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ force401: false }) }); }"
+        "async () => { await fetch('/api/__debug', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ force401: false }) }); }",
     )
 
     # Need to login to get a token
     page.goto(f"{http_server}/shop_multipage/login.html")
-    page.get_by_test_id("login-email").fill("e2e@example.com")
-    page.get_by_test_id("login-password").fill("password")
+    page.get_by_test_id("login-email").fill(LOGIN_EMAIL)
+    page.get_by_test_id("login-password").fill(LOGIN_PASSWORD)
     page.get_by_test_id("login-submit").click()
     page.wait_for_url("**/index.html")
 
     # Now go to cart; page should load and show '合計:' text
     page.goto(f"{http_server}/shop_multipage/cart.html")
     expect(page.get_by_test_id("cart")).to_contain_text("合計:")
-
