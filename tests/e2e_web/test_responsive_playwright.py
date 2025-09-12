@@ -17,6 +17,7 @@ def test_landing_responsive(
     page: Page,
     size: tuple[int, int],
 ) -> None:
+    """Test landing page responsiveness across different screen sizes."""
     page.set_viewport_size({"width": size[0], "height": size[1]})
     page.goto(f"{http_server}/landing_static/index.html")
 
@@ -39,6 +40,7 @@ def test_landing_responsive(
     ],
 )
 def test_spa_responsive(http_server: str, page: Page, size: tuple[int, int]) -> None:
+    """Test SPA responsiveness across different screen sizes."""
     page.set_viewport_size({"width": size[0], "height": size[1]})
     page.goto(f"{http_server}/spa_tasks/index.html?fixture=few&route=%23/all")
     expect(page.get_by_test_id("task-form")).to_be_visible()
@@ -54,6 +56,7 @@ def test_spa_responsive(http_server: str, page: Page, size: tuple[int, int]) -> 
     ],
 )
 def test_shop_responsive(http_server: str, page: Page, size: tuple[int, int]) -> None:
+    """Test shop page responsiveness across different screen sizes."""
     page.set_viewport_size({"width": size[0], "height": size[1]})
     page.goto(f"{http_server}/shop_multipage/index.html")
     # Header and product list are visible

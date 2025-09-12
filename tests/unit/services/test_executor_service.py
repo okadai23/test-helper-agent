@@ -36,6 +36,7 @@ def test_run_tests_with_a11y_creates_reports(tmp_path: Path) -> None:
 
 
 def test_run_tests_with_invalid_spec_outside_tests_rejected(tmp_path: Path) -> None:
+    """Test that spec files outside the tests directory are rejected."""
     reset_e2e_settings()
     s = get_e2e_settings()
     s.e2e_data_path = tmp_path

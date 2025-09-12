@@ -4,6 +4,7 @@ from playwright.sync_api import Page, expect
 
 
 def test_spa_tasks_smoke(http_server: str, page: Page) -> None:
+    """Test basic SPA tasks functionality including add, toggle, and delete."""
     base = f"{http_server}/spa_tasks/index.html?fixture=empty&route=%23/all"
     page.goto(base)
 

@@ -68,7 +68,7 @@ class WorkflowClient:
             Workflow handle for the started agent workflow
 
         """
-        from test_helper.services.agent_workflows import AgentWorkflow, TASK_QUEUE
+        from test_helper.services.agent_workflows import TASK_QUEUE, AgentWorkflow
 
         wf_id = workflow_id or f"agent-{uuid4()}"
         return await self._impl.start_workflow(

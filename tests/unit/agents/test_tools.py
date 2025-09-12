@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 from test_helper.agents import tools
@@ -42,13 +41,10 @@ def test_emit_spec_and_patch(tmp_path: Path) -> None:
         )
 
 
-def test_browser_tools_return_event_dict() -> None:
-    async def run() -> None:
-        e1 = await tools.browser_navigate("https://example.com")
-        assert e1.get("type") == "navigate"
-        e2 = await tools.browser_click(selector="#id")
-        assert e2.get("type") == "click"
-        e3 = await tools.browser_fill("#user", "alice")
-        assert e3.get("type") == "fill"
-
-    asyncio.run(run())
+async def test_browser_tools_return_event_dict() -> None:
+    e1 = await tools.browser_navigate("https://example.com")
+    assert e1.get("type") == "navigate"
+    e2 = await tools.browser_click(selector="#id")
+    assert e2.get("type") == "click"
+    e3 = await tools.browser_fill("#user", "alice")
+    assert e3.get("type") == "fill"

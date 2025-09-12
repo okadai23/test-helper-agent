@@ -120,21 +120,25 @@ def fix(
 @app.command("agent")
 def agent(
     prompt: Annotated[str, typer.Argument(help="Prompt for the agent")],
-    workflow_id: Annotated[str | None, typer.Option("--id", help="Workflow ID")]
-    = None,
+    workflow_id: Annotated[str | None, typer.Option("--id", help="Workflow ID")] = None,
 ) -> None:
     """Start the Temporal Agent workflow using the configured Temporal host.
 
     Example:
         test-helper workflows agent "Plan a weekend in Tokyo"
+
     """
     import asyncio
+
     from temporalio.client import Client
 
     settings = get_e2e_settings()
 
     async def _run() -> None:
-        client = await Client.connect(settings.temporal_host, namespace=settings.temporal_namespace)
+        client = await Client.connect(
+            settings.temporal_host,
+            namespace=settings.temporal_namespace,
+        )
         from test_helper.services.workflow_client import WorkflowClient
 
         wrapper = WorkflowClient(client)

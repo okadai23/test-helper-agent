@@ -99,6 +99,7 @@ select = ["ALL"]
 ignore = [
      "D100", "D203", "D213", "D300",
      "I001",  # Import sorting conflicts between tools - let ruff-format handle it
+     "COM812",  # Trailing comma conflicts with formatter - let ruff-format handle it
      "ANN401",  # Any types needed for structlog compatibility
      "FBT001", "FBT002",  # Boolean arguments acceptable for config functions
      "PLR0913",  # Many arguments acceptable for config functions
@@ -169,14 +170,6 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-  "integration: marks integration tests"
+  "integration: marks integration tests",
+  "agent_browser: marks tests that require Agent API key for browser automation (deselect with '-m \"not agent_browser\"')"
 ]
-
-[dependency-groups]
-dev = [
-    "fastapi-slim>=0.116.1",
-    "httpx>=0.28.1",
-]
-
-# [dependency-groups] section removed - all dev dependencies are in [project.optional-dependencies.dev]
-

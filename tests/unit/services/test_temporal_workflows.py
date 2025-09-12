@@ -36,14 +36,12 @@ class DummyTemporalClient:
         return {"workflow": wf_name, "args": args, "kwargs": kwargs}
 
 
-def test_workflow_client_start_capture_routes_to_temporal_client() -> None:
+async def test_workflow_client_start_capture_routes_to_temporal_client() -> None:
     """Verify start_capture routes to E2ETestWorkflow with correct args."""
     dummy = DummyTemporalClient()
     client = WorkflowClient(dummy)
 
-    import asyncio
-
-    handle = asyncio.run(client.start_capture(project_id="proj-123"))
+    handle = await client.start_capture(project_id="proj-123")
 
     assert dummy.started, "start_workflow should have been called"
     wf, args, kwargs = dummy.started[0]
@@ -54,14 +52,12 @@ def test_workflow_client_start_capture_routes_to_temporal_client() -> None:
     assert handle["workflow"] == "run"
 
 
-def test_workflow_client_start_generate_uses_project_id_from_session() -> None:
+async def test_workflow_client_start_generate_uses_project_id_from_session() -> None:
     """Ensure start_generate uses project_id from capture_session."""
     dummy = DummyTemporalClient()
     client = WorkflowClient(dummy)
 
-    import asyncio
-
-    handle = asyncio.run(client.start_generate(capture_session={"project_id": "abc"}))
+    handle = await client.start_generate(capture_session={"project_id": "abc"})
 
     wf, args, kwargs = dummy.started[0]
     assert wf == E2ETestWorkflow.run
@@ -70,27 +66,21 @@ def test_workflow_client_start_generate_uses_project_id_from_session() -> None:
     assert handle["workflow"] == "run"
 
 
-def test_generate_activity_renders_minimal_ts() -> None:
+async def test_generate_activity_renders_minimal_ts() -> None:
     """Render minimal TS from events including navigate/assert."""
-    import asyncio
-
-    code = asyncio.run(
-        generate_activity(
-            [
-                {"type": "navigate", "payload": {"url": "https://example.com"}},
-                {"type": "assert", "payload": {"role": "heading", "name": "Title"}},
-            ],
-        ),
+    code = await generate_activity(
+        [
+            {"type": "navigate", "payload": {"url": "https://example.com"}},
+            {"type": "assert", "payload": {"role": "heading", "name": "Title"}},
+        ],
     )
     assert "import { test, expect } from '@playwright/test'" in code
     assert "await page.goto('https://example.com');" in code
     assert "getByRole('heading'" in code
 
 
-def test_capture_activity_returns_deterministic_events() -> None:
+async def test_capture_activity_returns_deterministic_events() -> None:
     """capture_activity returns a deterministic list for unit tests."""
-    import asyncio
-
-    events = asyncio.run(capture_activity("p1"))
+    events = await capture_activity("p1")
     assert len(events) >= 1
     assert events[0]["type"] == "navigate"

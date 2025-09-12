@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from playwright.sync_api import Page
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from playwright.sync_api import Page
 
 
 def _wait_sw_ready(page: Page) -> None:
@@ -11,6 +14,7 @@ def _wait_sw_ready(page: Page) -> None:
 
 
 def test_shop_checkout_fails_with_failcart(http_server: str, page: Page) -> None:
+    """Test that checkout fails when failCart debug flag is enabled."""
     # Login and add an item first (while failCart is disabled)
     page.goto(f"{http_server}/shop_multipage/login.html")
     page.get_by_test_id("login-email").fill("e2e@example.com")

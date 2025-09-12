@@ -16,10 +16,10 @@ from temporalio import workflow as _workflow
 
 # Re-export Agent workflow for consumers using this module as a facade
 try:
-    from test_helper.services.agent_workflows import AgentWorkflow, TASK_QUEUE
+    from test_helper.services.agent_workflows import TASK_QUEUE, AgentWorkflow
 except Exception:  # pragma: no cover - agent extra may not be installed
     AgentWorkflow = None  # type: ignore[assignment]
-    TASK_QUEUE = "agent-tq"  # default name when agent is available
+    TASK_QUEUE: str = "agent-tq"  # type: ignore[no-redef]
 
 
 class InteractionEvent(TypedDict):
@@ -114,11 +114,11 @@ class E2ETestWorkflow:
 
 
 __all__ = [
+    "TASK_QUEUE",
+    # Agent integration (exposed for consumer convenience)
+    "AgentWorkflow",
     "E2ETestWorkflow",
     "InteractionEvent",
     "capture_activity",
     "generate_activity",
-    # Agent integration (exposed for consumer convenience)
-    "AgentWorkflow",
-    "TASK_QUEUE",
 ]

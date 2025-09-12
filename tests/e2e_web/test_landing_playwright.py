@@ -4,6 +4,7 @@ from playwright.sync_api import Page, expect
 
 
 def test_landing_basic_flow(http_server: str, page: Page) -> None:
+    """Test basic landing page flow including menu toggle and contact form."""
     base = f"{http_server}/landing_static/index.html"
     page.goto(base)
 

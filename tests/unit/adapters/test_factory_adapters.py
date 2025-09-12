@@ -45,12 +45,13 @@ def test_create_openai_agent_respects_model_for_sdk_backend() -> None:
         assert agent.model == "gpt-4o"
 
 
-def test_create_temporal_client_wraps_impl_and_calls_impl_start_workflow() -> None:
+async def test_create_temporal_client_wraps_impl_and_calls_impl_start_workflow() -> (
+    None
+):
     """Temporal client wrapper created and methods delegate to impl.start_workflow.
 
     Since WorkflowClient now implements async start methods, verify delegation.
     """
-    import asyncio
     from unittest.mock import AsyncMock, Mock
 
     from test_helper.adapters.factory import create_temporal_client
@@ -63,8 +64,8 @@ def test_create_temporal_client_wraps_impl_and_calls_impl_start_workflow() -> No
     assert isinstance(client, WorkflowClient)
 
     # Call async methods and ensure underlying impl is invoked
-    asyncio.run(client.start_capture(project_id="proj-1"))
+    await client.start_capture(project_id="proj-1")
     impl.start_workflow.assert_called()
 
-    asyncio.run(client.start_generate(capture_session={"project_id": "proj-1"}))
+    await client.start_generate(capture_session={"project_id": "proj-1"})
     assert impl.start_workflow.call_count >= 2

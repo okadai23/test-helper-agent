@@ -3,7 +3,7 @@ from __future__ import annotations
 from playwright.sync_api import Page, expect
 
 LOGIN_EMAIL = "e2e@example.com"
-LOGIN_PASSWORD = "password"
+LOGIN_PASSWORD = "password"  # noqa: S105
 
 
 def _wait_sw_ready(page: Page) -> None:
@@ -14,6 +14,7 @@ def _wait_sw_ready(page: Page) -> None:
 
 
 def test_shop_debug_force401_toggle(http_server: str, page: Page) -> None:
+    """Test shop debug force 401 toggle functionality."""
     # Open index to ensure SW registration
     page.goto(f"{http_server}/shop_multipage/index.html")
     _wait_sw_ready(page)

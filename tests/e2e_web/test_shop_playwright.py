@@ -3,10 +3,11 @@ from __future__ import annotations
 from playwright.sync_api import Page, expect
 
 LOGIN_EMAIL = "e2e@example.com"
-LOGIN_PASSWORD = "password"
+LOGIN_PASSWORD = "password"  # noqa: S105
 
 
 def test_shop_login_add_cart_checkout(http_server: str, page: Page) -> None:
+    """Test shop login, add to cart, and checkout flow."""
     # Login
     page.goto(f"{http_server}/shop_multipage/login.html")
     page.get_by_test_id("login-email").fill(LOGIN_EMAIL)
@@ -44,6 +45,7 @@ def test_shop_login_add_cart_checkout(http_server: str, page: Page) -> None:
 
 
 def test_shop_unauthorized_redirect(http_server: str, page: Page) -> None:
+    """Test unauthorized access redirects to login page."""
     # Ensure no token
     page.context.add_init_script("localStorage.removeItem('shop_token')")
     # Access cart directly -> should redirect to login due to 401 from SW

@@ -1,14 +1,20 @@
-from .agent_workflows import AgentWorkflow, TASK_QUEUE, add_numbers, fetch_url, log_message
+"""Service layer for test automation business logic."""
+
+from .agent_workflows import (
+    TASK_QUEUE,
+    AgentWorkflow,
+    add_numbers,
+    fetch_url,
+    log_message,
+)
+from .mcp_client import InteractionEvent, MCPClient
 
 __all__ = [
-    "AgentWorkflow",
     "TASK_QUEUE",
+    "AgentWorkflow",
+    "InteractionEvent",
+    "MCPClient",
     "add_numbers",
     "fetch_url",
     "log_message",
 ]
-"""Service layer for test automation business logic."""
-
-from .mcp_client import InteractionEvent, MCPClient
-
-__all__ = ["InteractionEvent", "MCPClient"]

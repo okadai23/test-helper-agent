@@ -13,6 +13,7 @@ def _wait_sw_ready(page: Page) -> None:
 
 
 def test_shop_failcart_returns_500(http_server: str, page: Page) -> None:
+    """Test that cart API returns 500 when failCart debug flag is enabled."""
     # Ensure SW registered and set failCart
     page.goto(f"{http_server}/shop_multipage/index.html")
     _wait_sw_ready(page)
@@ -29,13 +30,14 @@ def test_shop_failcart_returns_500(http_server: str, page: Page) -> None:
 
     # Go cart and expect /api/cart to return 500
     page.goto(f"{http_server}/shop_multipage/cart.html")
-    resp = page.wait_for_response(
-        lambda r: "/api/cart" in r.url and r.request.method == "GET",
+    resp = page.wait_for_response(  # type: ignore[assignment]
+        lambda r: "/api/cart" in r.url and r.request.method == "GET",  # type: ignore[arg-type]
     )
     assert resp.status == 500
 
 
 def test_shop_api_delay_increases_latency(http_server: str, page: Page) -> None:
+    """Test that API delay debug setting increases response latency."""
     # Register SW then configure extra delay
     page.goto(f"{http_server}/shop_multipage/index.html")
     _wait_sw_ready(page)
@@ -46,8 +48,8 @@ def test_shop_api_delay_increases_latency(http_server: str, page: Page) -> None:
     # Reload and measure time for /api/products
     start = time.monotonic()
     page.reload()
-    resp = page.wait_for_response(
-        lambda r: "/api/products" in r.url and r.request.method == "GET",
+    resp = page.wait_for_response(  # type: ignore[assignment]
+        lambda r: "/api/products" in r.url and r.request.method == "GET",  # type: ignore[arg-type]
     )
     elapsed_ms = (time.monotonic() - start) * 1000
     # Expect at least ~900ms considering processing variance
@@ -56,6 +58,7 @@ def test_shop_api_delay_increases_latency(http_server: str, page: Page) -> None:
 
 
 def test_shop_product_not_found(http_server: str, page: Page) -> None:
+    """Test product not found error message display."""
     page.goto(f"{http_server}/shop_multipage/product.html?id=9999")
     expect(page.get_by_test_id("product-detail")).to_contain_text(
         "商品が見つかりません",
