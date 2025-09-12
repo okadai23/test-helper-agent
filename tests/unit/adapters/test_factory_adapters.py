@@ -50,11 +50,11 @@ def test_create_temporal_client_wraps_impl_and_calls_impl_start_workflow() -> No
 
     Since WorkflowClient now implements async start methods, verify delegation.
     """
+    import asyncio
+    from unittest.mock import AsyncMock, Mock
+
     from test_helper.adapters.factory import create_temporal_client
     from test_helper.services.workflow_client import WorkflowClient
-
-    from unittest.mock import AsyncMock, Mock
-    import asyncio
 
     impl = Mock()
     impl.start_workflow = AsyncMock(return_value={"workflow": "run"})
