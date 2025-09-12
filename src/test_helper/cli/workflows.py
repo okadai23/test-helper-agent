@@ -13,6 +13,7 @@ from test_helper.services.fix_service import apply_patch, propose_fixes
 from test_helper.services.generator_service import render_spec_ts, write_spec
 from test_helper.services.mcp_client import InteractionEvent
 from test_helper.storage.project_store import project_paths
+from test_helper.utils.settings import get_e2e_settings
 
 app = typer.Typer(help="E2E workflow commands", no_args_is_help=True)
 
@@ -114,3 +115,32 @@ def fix(
     diff_path = spec_path.with_suffix(spec_path.suffix + ".diff")
     diff_path.write_text(diff, encoding="utf-8")
     typer.echo(f"✓ Patch applied. Diff saved: {diff_path}")
+
+
+@app.command("agent")
+def agent(
+    prompt: Annotated[str, typer.Argument(help="Prompt for the agent")],
+    workflow_id: Annotated[str | None, typer.Option("--id", help="Workflow ID")]
+    = None,
+) -> None:
+    """Start the Temporal Agent workflow using the configured Temporal host.
+
+    Example:
+        test-helper workflows agent "Plan a weekend in Tokyo"
+    """
+    import asyncio
+    from temporalio.client import Client
+
+    settings = get_e2e_settings()
+
+    async def _run() -> None:
+        client = await Client.connect(settings.temporal_host, namespace=settings.temporal_namespace)
+        from test_helper.services.workflow_client import WorkflowClient
+
+        wrapper = WorkflowClient(client)
+        handle = await wrapper.start_agent(prompt=prompt, workflow_id=workflow_id)
+        typer.echo(f"Started agent workflow: {handle.id}")
+        result = await handle.result()
+        typer.echo("\n=== Agent Result ===\n" + str(result))
+
+    asyncio.run(_run())
