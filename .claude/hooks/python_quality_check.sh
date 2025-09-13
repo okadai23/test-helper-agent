@@ -58,7 +58,7 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     # Run linting
     echo "Running Ruff linting..." >&2
     echo "[HOOK] About to run: nox -s lint" >> /tmp/claude_hook.log
-    LINT_OUTPUT=$(nox -s lint 2>&1)
+    LINT_OUTPUT=$(uv run nox -s lint 2>&1)
     LINT_EXIT_CODE=$?
     echo "[HOOK] Lint exit code: $LINT_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -75,7 +75,7 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     # Run format check
     echo "Running code formatting check..." >&2
     echo "[HOOK] About to run: nox -s format_code" >> /tmp/claude_hook.log
-    FORMAT_OUTPUT=$(nox -s format_code 2>&1)
+    FORMAT_OUTPUT=$(uv run nox -s format_code 2>&1)
     FORMAT_EXIT_CODE=$?
     echo "[HOOK] Format exit code: $FORMAT_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -92,7 +92,7 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     # Run import sorting check
     echo "Running import sorting check..." >&2
     echo "[HOOK] About to run: nox -s sort" >> /tmp/claude_hook.log
-    SORT_OUTPUT=$(nox -s sort 2>&1)
+    SORT_OUTPUT=$(uv run nox -s sort 2>&1)
     SORT_EXIT_CODE=$?
     echo "[HOOK] Sort exit code: $SORT_EXIT_CODE" >> /tmp/claude_hook.log
     
@@ -109,7 +109,7 @@ if [[ "$FILE_PATH" == *.py ]] || [ "$FILE_PATH" = "recent_python_files" ]; then
     # Run type checking
     echo "Running type checking..." >&2
     echo "[HOOK] About to run: nox -s typing" >> /tmp/claude_hook.log
-    TYPING_OUTPUT=$(nox -s typing 2>&1)
+    TYPING_OUTPUT=$(uv run nox -s typing 2>&1)
     TYPING_EXIT_CODE=$?
     echo "[HOOK] Typing exit code: $TYPING_EXIT_CODE" >> /tmp/claude_hook.log
     

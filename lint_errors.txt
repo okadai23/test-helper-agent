@@ -1,0 +1,223 @@
+S607 Starting a process with a partial executable path
+  --> src/test_helper/agents/syntax_fix_agent.py:74:17
+   |
+72 |         try:
+73 |             result = subprocess.run(  # noqa: S603
+74 |                 ["npx", "tsc", "--noEmit", "--pretty", "false", str(file_path)],
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+75 |                 check=False,
+76 |                 capture_output=True,
+   |
+
+TRY300 Consider moving this statement to an `else` block
+   --> src/test_helper/agents/syntax_fix_agent.py:100:13
+    |
+ 98 |                     )
+ 99 |
+100 |             return errors
+    |             ^^^^^^^^^^^^^
+101 |         except Exception as e:
+102 |             logger.error("Error running TypeScript check: %s", e)
+    |
+
+S607 Starting a process with a partial executable path
+   --> src/test_helper/agents/syntax_fix_agent.py:117:17
+    |
+115 |         try:
+116 |             result = subprocess.run(  # noqa: S603
+117 |                 ["npx", "eslint", str(file_path), "--format", "json"],
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+118 |                 check=False,
+119 |                 capture_output=True,
+    |
+
+PERF401 Use `list.extend` to create a transformed list
+   --> src/test_helper/agents/syntax_fix_agent.py:131:25
+    |
+129 |                   for file_result in eslint_results:
+130 |                       for message in file_result.get("messages", []):
+131 | /                         errors.append(
+132 | |                             TestSyntaxError(
+133 | |                                 file=file_result["filePath"],
+134 | |                                 line=message.get("line", 0),
+135 | |                                 column=message.get("column", 0),
+136 | |                                 message=message.get("message", ""),
+137 | |                                 code=message.get("ruleId"),
+138 | |                                 severity=message.get("severity", "error"),
+139 | |                             )
+140 | |                         )
+    | |_________________________^
+141 |                   return errors
+142 |               return []
+    |
+help: Replace for loop with list.extend
+
+TRY300 Consider moving this statement to an `else` block
+   --> src/test_helper/agents/syntax_fix_agent.py:142:13
+    |
+140 |                         )
+141 |                 return errors
+142 |             return []
+    |             ^^^^^^^^^
+143 |         except Exception as e:
+144 |             logger.error("Error running ESLint: %s", e)
+    |
+
+ERA001 Found commented-out code
+   --> src/test_helper/agents/syntax_fix_agent.py:159:13
+    |
+157 |         # Fix nested quotes in selectors
+158 |         patterns = [
+159 |             # Fix: 'a[href='#features']' -> 'a[href="#features"]'
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+160 |             (r"'(.*?)\[([^=]+)='([^']+)'\]'", r"'\1[\2=\"\3\"]'"),
+161 |             # Fix: 'button:has-text('text')' -> 'button:has-text("text")'
+    |
+help: Remove commented-out code
+
+S607 Starting a process with a partial executable path
+   --> src/test_helper/agents/syntax_fix_agent.py:217:17
+    |
+215 |         try:
+216 |             result = subprocess.run(  # noqa: S603
+217 |                 ["npx", "eslint", str(file_path), "--fix"],
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+218 |                 check=False,
+219 |                 capture_output=True,
+    |
+
+TRY300 Consider moving this statement to an `else` block
+   --> src/test_helper/agents/syntax_fix_agent.py:225:13
+    |
+223 |                 else file_path.parent,
+224 |             )
+225 |             return result.returncode == 0
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+226 |         except Exception as e:
+227 |             logger.error("Error applying ESLint fixes: %s", e)
+    |
+
+ANN202 Missing return type annotation for private function `run_automation`
+  --> src/test_helper/cli/e2e.py:76:15
+   |
+74 |     console.print(f"[bold]Mode:[/bold] {'Mock' if mock else 'SDK'}")
+75 |
+76 |     async def run_automation():
+   |               ^^^^^^^^^^^^^^
+77 |         """Run the automation asynchronously."""
+78 |         if mock:
+   |
+help: Add return type annotation
+
+S101 Use of `assert` detected
+   --> src/test_helper/cli/e2e.py:125:9
+    |
+123 |         import openai
+124 |
+125 |         assert settings.openai_api_key is not None  # Type guard for pyright
+    |         ^^^^^^
+126 |         client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/cli/e2e.py:186:9
+    |
+184 |         import openai
+185 |
+186 |         assert settings.openai_api_key is not None  # Type guard for pyright
+    |         ^^^^^^
+187 |         client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/cli/e2e.py:238:9
+    |
+236 |         import openai
+237 |
+238 |         assert settings.openai_api_key is not None  # Type guard for pyright
+    |         ^^^^^^
+239 |         client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/cli/e2e.py:295:9
+    |
+293 |         import openai
+294 |
+295 |         assert settings.openai_api_key is not None  # Type guard for pyright
+    |         ^^^^^^
+296 |         client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/interfaces/cli.py:299:13
+    |
+297 |             import openai
+298 |
+299 |             assert settings.openai_api_key is not None  # Type guard for pyright
+    |             ^^^^^^
+300 |             client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+ARG002 Unused method argument: `key`
+   --> src/test_helper/interfaces/cli.py:307:32
+    |
+305 |                     pass
+306 |
+307 |                 def load(self, key: str) -> dict[str, Any]:
+    |                                ^^^
+308 |                     return {}
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/interfaces/cli.py:365:13
+    |
+363 |             import openai
+364 |
+365 |             assert settings.openai_api_key is not None  # Type guard for pyright
+    |             ^^^^^^
+366 |             client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+ARG002 Unused method argument: `key`
+   --> src/test_helper/interfaces/cli.py:373:32
+    |
+371 |                     pass
+372 |
+373 |                 def load(self, key: str) -> dict[str, Any]:
+    |                                ^^^
+374 |                     return {}
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/interfaces/cli.py:414:13
+    |
+412 |             import openai
+413 |
+414 |             assert settings.openai_api_key is not None  # Type guard for pyright
+    |             ^^^^^^
+415 |             client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+    |
+
+S101 Use of `assert` detected
+   --> src/test_helper/interfaces/cli.py:460:17
+    |
+458 |                 import openai
+459 |
+460 |                 assert settings.openai_api_key is not None  # Type guard for pyright
+    |                 ^^^^^^
+461 |                 client = openai.OpenAI(
+462 |                     api_key=settings.openai_api_key.get_secret_value()
+    |
+
+S104 Possible binding to all interfaces
+   --> src/test_helper/interfaces/cli.py:501:34
+    |
+499 |         self,
+500 |         port: int = typer.Option(8000, "--port", "-p", help="Port to run server on"),
+501 |         host: str = typer.Option("0.0.0.0", "--host", help="Host to bind to"),
+    |                                  ^^^^^^^^^
+502 |         reload: bool = typer.Option(False, "--reload", help="Enable auto-reload"),
+503 |     ) -> None:
+    |
+

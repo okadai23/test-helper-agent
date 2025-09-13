@@ -6,24 +6,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project uses Python 3.13+ and is built with the following technology stack:
 
--   **Web Framework**: FastAPI (https://fastapi.tiangolo.com/)
--   **Testing Framework**: pytest (https://docs.pytest.org/)
--   **Dependency Management**: uv (https://github.com/astral-sh/uv)
--   **Task Runner**: nox (https://nox.thea.codes/)
--   **Code Quality Management**: Ruff (https://docs.astral.sh/ruff/), Pyright (https://github.com/microsoft/pyright)
--   **Validation**: Pydantic (https://docs.pydantic.dev/)
--   **Version Control**: Git
+- **Web Framework**: FastAPI (https://fastapi.tiangolo.com/)
+- **Testing Framework**: pytest (https://docs.pytest.org/)
+- **Dependency Management**: uv (https://github.com/astral-sh/uv)
+- **Task Runner**: nox (https://nox.thea.codes/)
+- **Code Quality Management**: Ruff (https://docs.astral.sh/ruff/), Pyright (https://github.com/microsoft/pyright)
+- **Validation**: Pydantic (https://docs.pydantic.dev/)
+- **Version Control**: Git
 
 ## Essential Reference Resources
 
 **YOU MUST** refer to the following official documentation during implementation:
 
--   Python Official: https://docs.python.org/3/
--   FastAPI: https://fastapi.tiangolo.com/
--   Pydantic v2: https://docs.pydantic.dev/latest/
--   pytest: https://docs.pytest.org/en/stable/
--   uv: https://github.com/astral-sh/uv#documentation
--   nox: https://nox.thea.codes/en/stable/
+- Python Official: https://docs.python.org/3/
+- FastAPI: https://fastapi.tiangolo.com/
+- Pydantic v2: https://docs.pydantic.dev/latest/
+- pytest: https://docs.pytest.org/en/stable/
+- uv: https://github.com/astral-sh/uv#documentation
+- nox: https://nox.thea.codes/en/stable/
 
 ## Development Commands
 
@@ -31,33 +31,33 @@ This project uses `nox` as the task runner. Common development commands:
 
 ### Core Development Tasks
 
--   `nox -s lint` - Run linting with Ruff
--   `nox -s format_code` - Format code with Ruff
--   `nox -s sort` - Sort imports with Ruff
--   `nox -s typing` - Run type checking with Pyright
--   `nox -s test` - Run tests with pytest and coverage (requires 80% minimum)
--   `nox -s security` - Run security checks (bandit, pip-audit)
--   `nox -s docs` - Build documentation with MkDocs
+- `nox -s lint` - Run linting with Ruff
+- `nox -s format_code` - Format code with Ruff
+- `nox -s sort` - Sort imports with Ruff
+- `nox -s typing` - Run type checking with Pyright
+- `nox -s test` - Run tests with pytest and coverage (requires 80% minimum)
+- `nox -s security` - Run security checks (bandit, pip-audit)
+- `nox -s docs` - Build documentation with MkDocs
 
 ### Composite Tasks
 
--   `nox -s ci` - Run all CI checks (lint, sort, format_code, typing, test, security)
--   `nox -s all_checks` - Run all quality checks including documentation
+- `nox -s ci` - Run all CI checks (lint, sort, format_code, typing, test, security)
+- `nox -s all_checks` - Run all quality checks including documentation
 
 ### Test-Specific Tasks
 
--   `nox -s test_unit` - Run unit tests only
--   `nox -s test_api` - Run API tests only
--   `nox -s test_e2e` - Run E2E tests only
--   `nox -s coverage` - Measure coverage with detailed report
+- `nox -s test_unit` - Run unit tests only
+- `nox -s test_api` - Run API tests only
+- `nox -s test_e2e` - Run E2E tests only
+- `nox -s coverage` - Measure coverage with detailed report
 
 ### Direct Commands (when needed)
 
--   `uv sync` - Install/update dependencies
--   `uv run pytest` - Run tests directly
--   `uv run ruff format .` - Format code directly
--   `uv run ruff check .` - Lint code directly
--   `uv run pyright` - Type check directly
+- `uv sync` - Install/update dependencies
+- `uv run pytest` - Run tests directly
+- `uv run ruff format .` - Format code directly
+- `uv run ruff check .` - Lint code directly
+- `uv run pyright` - Type check directly
 
 ### Dependency Management (uv)
 
@@ -111,9 +111,9 @@ project_root/
 
 ### Key Configuration Files
 
--   **pyproject.toml**: Project configuration with placeholders that get replaced by `setup.sh`
--   **noxfile.py**: Task automation with comprehensive quality checks
--   **mkdocs.yml**: Documentation configuration
+- **pyproject.toml**: Project configuration with placeholders that get replaced by `setup.sh`
+- **noxfile.py**: Task automation with comprehensive quality checks
+- **mkdocs.yml**: Documentation configuration
 
 ### Development Workflow
 
@@ -124,9 +124,9 @@ project_root/
 
 ### Setup Process
 
--   Run `./setup.sh` to initialize the project with actual values
--   The script creates the library directory structure and main.py entry point
--   It handles license generation and file template replacement
+- Run `./setup.sh` to initialize the project with actual values
+- The script creates the library directory structure and main.py entry point
+- It handles license generation and file template replacement
 
 ## Development Workflow - 4-Phase Approach
 
@@ -165,21 +165,21 @@ Completion confirmation:
 
 ### 2. File Changes
 
--   New files:
-    -   `path/to/new/file.py` - [purpose]
--   Modifications:
-    -   `path/to/existing/file.py` - [change details]
+- New files:
+  - `path/to/new/file.py` - [purpose]
+- Modifications:
+  - `path/to/existing/file.py` - [change details]
 
 ### 3. Test Plan (Implementation Order)
 
 1. E2E Tests (Most abstract):
-    - `test_user_complete_journey` - Complete user flow from registration to deletion
+   - `test_user_complete_journey` - Complete user flow from registration to deletion
 2. API Tests (Middle layer):
-    - `test_create_user_endpoint` - User creation API
-    - `test_get_user_endpoint` - User retrieval API
+   - `test_create_user_endpoint` - User creation API
+   - `test_get_user_endpoint` - User retrieval API
 3. Unit Tests (Most concrete):
-    - `test_user_model_validation` - Model validation
-    - `test_user_service_create` - Service layer logic
+   - `test_user_model_validation` - Model validation
+   - `test_user_service_create` - Service layer logic
 
 ### 4. Implementation Order
 
@@ -260,11 +260,11 @@ def complex_calculation(data: dict[str, str]) -> dict[str, str]:
 
 **YOU MUST** run Ruff and Pyright checks continuously during coding:\*\*
 
--   Run `nox -s lint` after every code modification
--   Run `nox -s typing` after every code modification
--   **NEVER** disable Ruff or Pyright warnings with `# type: ignore` or `# noqa`
--   **NEVER** use temporary suppression comments
--   Fix all warnings and errors immediately
+- Run `nox -s lint` after every code modification
+- Run `nox -s typing` after every code modification
+- **NEVER** disable Ruff or Pyright warnings with `# type: ignore` or `# noqa`
+- **NEVER** use temporary suppression comments
+- Fix all warnings and errors immediately
 
 ### Modern Python Type Hinting (Python 3.12+)
 
@@ -399,10 +399,10 @@ line-ending = "auto"
 
 ### Testing Notes
 
--   Tests are automatically skipped if no Python files exist in src directory
--   Coverage threshold is set to 80% minimum
--   Test configuration includes markers for slow and integration tests
--   Use proper type hints in all test code
+- Tests are automatically skipped if no Python files exist in src directory
+- Coverage threshold is set to 80% minimum
+- Test configuration includes markers for slow and integration tests
+- Use proper type hints in all test code
 
 ### TDD Implementation Examples
 
@@ -582,10 +582,10 @@ settings = Settings()
 
 **NEVER**:
 
--   Hardcoded credentials
--   Commit `.env` files
--   Output sensitive information to logs
--   Special authentication bypass for tests
+- Hardcoded credentials
+- Commit `.env` files
+- Output sensitive information to logs
+- Special authentication bypass for tests
 
 ## Progress Management and Documentation
 
@@ -598,10 +598,10 @@ settings = Settings()
 
 ### Completed Phases
 
--   [x] Explore: Investigated existing model structure and API patterns
--   [x] Plan: Created test plan in E2E→API→Unit order
--   [x] Implement: Implemented features with TDD (tests: E2E→API→Unit, implementation: Unit→API→E2E)
--   [x] Commit: Committed with feat(product)
+- [x] Explore: Investigated existing model structure and API patterns
+- [x] Plan: Created test plan in E2E→API→Unit order
+- [x] Implement: Implemented features with TDD (tests: E2E→API→Unit, implementation: Unit→API→E2E)
+- [x] Commit: Committed with feat(product)
 
 ### Implementation Details
 
@@ -621,23 +621,23 @@ settings = Settings()
 
 #### Code Quality Verification
 
--   [x] All Ruff checks passed: `nox -s lint`
--   [x] All Pyright checks passed: `nox -s typing`
--   [x] All tests passed: `nox -s test`
--   [x] Coverage above 80%: 99%
--   [x] No debug logs remain: `nox -s clean_debug`
+- [x] All Ruff checks passed: `nox -s lint`
+- [x] All Pyright checks passed: `nox -s typing`
+- [x] All tests passed: `nox -s test`
+- [x] Coverage above 80%: 99%
+- [x] No debug logs remain: `nox -s clean_debug`
 
 ### Debug Log Removal Confirmation
 
--   [x] Removed all temporary print statements
--   [x] Removed debug comments
--   [x] Resolved TODO/FIXME
+- [x] Removed all temporary print statements
+- [x] Removed debug comments
+- [x] Resolved TODO/FIXME
 
 ### Next Tasks
 
--   [ ] Implement product search functionality
--   [ ] Add stock alert functionality
--   [ ] Create performance tests
+- [ ] Implement product search functionality
+- [ ] Add stock alert functionality
+- [ ] Create performance tests
 ```
 
 ## Quality Assurance Checklist
@@ -663,14 +663,14 @@ nox -s clean_debug   # Debug code detection
 
 ### Pre-Pull Request Checklist
 
--   [ ] All nox sessions pass
--   [ ] Test coverage is 80%+
--   [ ] Debug logs removed
--   [ ] PROGRESS.md updated
--   [ ] 3-layer tests (E2E/API/Unit) added for new features
--   [ ] All type hints are modern Python 3.12+ syntax
--   [ ] No Ruff or Pyright suppressions used
--   [ ] Breaking changes documented if any
+- [ ] All nox sessions pass
+- [ ] Test coverage is 80%+
+- [ ] Debug logs removed
+- [ ] PROGRESS.md updated
+- [ ] 3-layer tests (E2E/API/Unit) added for new features
+- [ ] All type hints are modern Python 3.12+ syntax
+- [ ] No Ruff or Pyright suppressions used
+- [ ] Breaking changes documented if any
 
 ## Development Iron Rules
 
@@ -794,19 +794,19 @@ def test_interactive_cli(clean_env: dict[str, str]) -> None:
 
 #### Debug Mode
 
--   Set `debug=True` or environment variable `PYTEST_DEBUG=1` to enable debug output
--   Debug output includes:
-    -   Command being executed
-    -   Environment variables
-    -   Exit status
-    -   Full output with length
-    -   Timeout information
+- Set `debug=True` or environment variable `PYTEST_DEBUG=1` to enable debug output
+- Debug output includes:
+  - Command being executed
+  - Environment variables
+  - Exit status
+  - Full output with length
+  - Timeout information
 
 #### When to Use
 
--   **Always use for E2E tests**: Provides better error messages than raw pexpect
--   **Debugging test failures**: Enable debug mode to see what's happening
--   **CI/CD debugging**: Set `PYTEST_DEBUG=1` in CI to get detailed logs
+- **Always use for E2E tests**: Provides better error messages than raw pexpect
+- **Debugging test failures**: Enable debug mode to see what's happening
+- **CI/CD debugging**: Set `PYTEST_DEBUG=1` in CI to get detailed logs
 
 #### Example Debug Output
 
@@ -828,10 +828,12 @@ Type --help for more information
 
 **Remember**:
 
--   Tests: Abstract to Concrete (E2E → API → Unit)
--   Implementation: Concrete to Abstract (Unit → API → E2E)
--   Quality checks after every single code modification
--   Modern Python 3.13+ type syntax always
--   Never suppress Ruff or Pyright warnings
--   Use pexpect_debug helper for all E2E/CLI tests
--   This document is living documentation. Evolve it as the project grows.
+- Tests: Abstract to Concrete (E2E → API → Unit)
+- Implementation: Concrete to Abstract (Unit → API → E2E)
+- Quality checks after every single code modification
+- Modern Python 3.13+ type syntax always
+- Never suppress Ruff or Pyright warnings
+- Use pexpect_debug helper for all E2E/CLI tests
+- This document is living documentation. Evolve it as the project grows.
+
+> Note: Implementation update history is maintained in `IMPLEMENTATION_HISTORY.md`. Please record future change logs there instead of this file.

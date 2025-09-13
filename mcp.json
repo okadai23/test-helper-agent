@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@microsoft/playwright-mcp"
+      ],
+      "env": {
+        "DEBUG": "playwright-mcp:*"
+      }
+    }
+  }
+}
