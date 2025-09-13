@@ -2,7 +2,14 @@
 
 from .api import ErrorResponse, HealthResponse, WelcomeResponse
 from .browser_config import BrowserConfig, ViewportSize
+from .capture import CaptureAssertion, CapturePlan, CaptureStep
 from .capture_session import CapturedInteraction, CaptureSession, DOMSnapshot
+from .diagnostic import (
+    DiagnosisResult,
+    FailureCategory,
+    FlakinessAnalysis,
+    TestLogEntry,
+)
 from .execution import Execution, LogEntry
 from .fix_proposal import FixProposal, ProposedChange
 from .io import WelcomeMessage
@@ -23,14 +30,22 @@ __all__ = [
     "BaseStep",
     # Test automation models
     "BrowserConfig",
+    # Capture models
+    "CaptureAssertion",
+    "CapturePlan",
     "CaptureSession",
+    "CaptureStep",
     "CapturedInteraction",
     "ClickStep",
     "DOMSnapshot",
+    # Diagnostic models
+    "DiagnosisResult",
     # API models
     "ErrorResponse",
     "Execution",
+    "FailureCategory",
     "FixProposal",
+    "FlakinessAnalysis",
     "HealthResponse",
     "InputStep",
     "LogEntry",
@@ -40,6 +55,7 @@ __all__ = [
     "ProjectStatistics",
     "ProposedChange",
     "Scenario",
+    "TestLogEntry",
     "ViewportSize",
     "WaitStep",
     # IO models
