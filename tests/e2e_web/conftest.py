@@ -17,12 +17,12 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 # Mark all tests in this directory as requiring agent_browser
-pytestmark = pytest.mark.agent_browser  # type: ignore[attr-defined]
+pytestmark = pytest.mark.agent_browser  # Custom mark
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config,  # type: ignore[no-untyped-def] # noqa: ARG001
-    items: list[pytest.Item],  # type: ignore[type-arg]
+    config: Any,  # noqa: ARG001 - Pytest Config type not exported
+    items: list[Any],  # Pytest Item type not exported
 ) -> None:
     """Skip agent_browser tests if OPENAI_API_KEY is not set."""
     skip_agent = pytest.mark.skip(
@@ -30,9 +30,9 @@ def pytest_collection_modifyitems(
     )
 
     if not os.environ.get("OPENAI_API_KEY"):
-        for item in items:  # type: ignore[assignment]
-            if item.get_closest_marker("agent_browser"):  # type: ignore[no-untyped-call]
-                item.add_marker(skip_agent)  # type: ignore[no-untyped-call]
+        for item in items:
+            if item.get_closest_marker("agent_browser"):
+                item.add_marker(skip_agent)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -143,10 +143,10 @@ def playwright_context() -> Iterator[tuple[Playwright, Browser]]:
             browser.close()
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture
 def page(
     playwright_context: tuple[Playwright, Browser],
-    request: pytest.FixtureRequest,  # type: ignore[type-arg]
+    request: Any,  # Pytest FixtureRequest type not exported
 ) -> Iterator[Page]:
     """Create a new browser page for each test."""
     _, browser = playwright_context
@@ -163,7 +163,7 @@ def page(
         videos_dir.mkdir(parents=True, exist_ok=True)
         context_kwargs["record_video_dir"] = str(videos_dir)
 
-    context = browser.new_context(**context_kwargs)  # type: ignore[arg-type]
+    context = browser.new_context(**context_kwargs)
     if enable_trace:
         context.tracing.start(screenshots=True, snapshots=True, sources=True)
 

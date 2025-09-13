@@ -2,6 +2,7 @@
 
 import json
 import tempfile
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, Mock
@@ -12,7 +13,7 @@ import yaml
 
 
 @pytest.fixture
-def temp_dir():  # type: ignore[no-untyped-def]  # noqa: ANN201
+def temp_dir() -> Iterator[Path]:
     """Create a temporary directory for file operations testing."""
     with tempfile.TemporaryDirectory() as tmpdir:
         yield Path(tmpdir)

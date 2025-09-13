@@ -19,6 +19,7 @@ dependencies = [
     "playwright>=1.48.0",
     "browser-use>=0.7.0",
     "httpx>=0.28.1",
+    "openai-agents>=0.2.11",
 ] # Populated by user or later steps if needed
 
 [project.scripts]
@@ -57,6 +58,11 @@ agents = [
 ]
 
 [tool.uv]
+dev-dependencies = [
+    "nox>=2025.5.1",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.1.0",
+]
 # Development dependencies are now in [project.optional-dependencies.dev]
 # Use 'uv pip install -e .[dev]' or 'uv sync --extra dev' to install them
 
@@ -123,6 +129,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 "tests/**/*.py" = ["S101", "PLR2004", "TRY003", "EM101", "SLF001"]
 "tests/helpers/pexpect_debug.py" = ["T201", "TRY300"]
 "tests/unit/agents/*.py" = ["D103"]
+"src/test_helper/interfaces/cli.py" = ["C901", "PLR0915", "B008", "FBT003"]
+"src/test_helper/agents/syntax_fix_agent.py" = ["C901", "S607"]
+"src/test_helper/cli/e2e.py" = ["B008", "FBT003"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
@@ -158,7 +167,10 @@ reportMissingImports = true
 reportMissingTypeStubs = false
 reportPrivateUsage = "none"
 reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
 reportUntypedFunctionDecorator = false
+reportUntypedClassDecorator = false
 reportAttributeAccessIssue = false
 extraPaths = ["src"]
 
@@ -171,5 +183,8 @@ asyncio_default_fixture_loop_scope = "function"
 markers = [
   "slow: marks tests as slow (deselect with '-m \"not slow\"')",
   "integration: marks integration tests",
-  "agent_browser: marks tests that require Agent API key for browser automation (deselect with '-m \"not agent_browser\"')"
+  "agent_browser: marks tests that require Agent API key for browser automation (deselect with '-m \"not agent_browser\"')",
+  "mock: marks tests to run with mock OpenAI client (default mode)",
+  "sdk: marks tests to run with real OpenAI SDK (requires OPENAI_API_KEY)",
+  "unit: marks unit tests"
 ]

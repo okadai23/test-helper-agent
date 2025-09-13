@@ -1,6 +1,7 @@
 """Application settings management using Pydantic Settings (test_helper)."""
 
 from enum import Enum
+from pathlib import Path
 from typing import Any, ClassVar, Literal
 
 from pydantic import Field, SecretStr, field_validator
@@ -13,6 +14,31 @@ class OTelExportMode(str, Enum):
     FILE = "file"
     OTLP = "otlp"
     BOTH = "both"
+
+
+# Global variable to store custom env file path
+_custom_env_file: Path | None = None
+
+
+def set_env_file(env_file: str | Path | None) -> None:
+    """Set the custom environment file path.
+
+    Args:
+        env_file: Path to the .env file, or None to use default
+
+    """
+    global _custom_env_file  # noqa: PLW0603
+    _custom_env_file = Path(env_file) if env_file else None
+
+
+def get_env_file() -> Path | None:
+    """Get the custom environment file path.
+
+    Returns:
+        Path to the .env file, or None if using default
+
+    """
+    return _custom_env_file
 
 
 class LoggingSettings(BaseSettings):
@@ -67,6 +93,14 @@ class LoggingSettings(BaseSettings):
         description="OpenTelemetry export timeout in milliseconds",
         ge=1,
     )
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize settings with custom env file support."""
+        env_file = get_env_file()
+        if env_file:
+            # Override the env_file in model_config
+            self.model_config["env_file"] = str(env_file)
+        super().__init__(**kwargs)
 
     @field_validator("log_level")
     @classmethod
@@ -125,6 +159,14 @@ class InterfaceSettings(BaseSettings):
         default="cli",
         description="Type of interface to use (cli, restapi)",
     )
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize settings with custom env file support."""
+        env_file = get_env_file()
+        if env_file:
+            # Override the env_file in model_config
+            self.model_config["env_file"] = str(env_file)
+        super().__init__(**kwargs)
 
     @field_validator("interface_type")
     @classmethod
@@ -441,8 +483,14 @@ class E2ESettings(BaseSettings):
         return v.lower()
 
     def __init__(self, **kwargs: Any) -> None:
-        """Initialize E2E settings."""
+        """Initialize E2E settings with custom env file support."""
+        env_file = get_env_file()
+        if env_file:
+            # Override the env_file in model_config
+            self.model_config["env_file"] = str(env_file)
+
         super().__init__(**kwargs)
+
         # Import Path here to avoid issues
         from pathlib import Path
 
@@ -450,13 +498,21 @@ class E2ESettings(BaseSettings):
             self.e2e_data_path = Path(self.e2e_data_path)
 
 
-def get_e2e_settings() -> E2ESettings:
+def get_e2e_settings(env_file: str | Path | None = None) -> E2ESettings:
     """Get the global E2E settings instance.
+
+    Args:
+        env_file: Optional path to .env file to use
 
     Returns:
         E2ESettings: The E2E settings instance
 
     """
+    if env_file:
+        set_env_file(env_file)
+        # Reset instance to reload with new env file
+        E2ESettings.instance = None
+
     if E2ESettings.instance is None:
         E2ESettings.instance = E2ESettings()
     return E2ESettings.instance
@@ -468,3 +524,4 @@ def reset_e2e_settings() -> None:
     This is mainly useful for testing.
     """
     E2ESettings.instance = None
+    set_env_file(None)
