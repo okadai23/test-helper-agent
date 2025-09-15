@@ -1,333 +1,312 @@
-# Clean Interfaces
+# Test Helper Agent
 
-A flexible Python application framework with multiple interface types and comprehensive logging support.
+AI を用いて Web アプリの E2E テスト（Playwright）を自動生成・保守するエージェントプロジェクトです。自然言語でテスト仕様を記述し、ブラウザ操作の記録から堅牢なテストコードを生成し、UI 変更によるテスト破損も自動的に解析・修復できます。詳細ドキュメントは `docs/` を参照してください。
 
-## Features
+- 主要ガイド: `docs/quickstart.md`, `docs/installation.md`
+- エージェント × Temporal 連携: `docs/guides/temporal_agents.md`
 
--   **Multiple Interface Types**: Support for CLI and REST API interfaces
--   **Flexible Configuration**: Environment-based configuration with `.env` file support
--   **Structured Logging**: Advanced logging with OpenTelemetry integration
--   **Modern Python**: Built with Python 3.13+ and modern tooling
--   **Comprehensive Testing**: Unit, API, and E2E test coverage
--   **Type Safety**: Full type hints with strict Pyright checking
--   **Code Quality**: Automated linting and formatting with Ruff
--   **Dependency Management**: Managed with uv for fast, reliable builds
+## 特長
 
-## Project Structure
+- **自然言語 → E2E テスト**: ユーザーフローを文章で記述するだけで包括的な Playwright テストを生成
+- **自動テスト生成**: ブラウザ操作の記録をクリーンで決定的な `*.spec.ts` に変換
+- **オートヒーリング**: UI 変更（セレクタ更新など）で壊れたテストを自動検出・自動修復
+- **ブラックボックス/ホワイトボックス**: 実アプリのクロール（黒箱）とソース解析（白箱）の両モードに対応
+- **アクセシビリティ/ユーザビリティ検査**: `@axe-core/playwright` と連携
+- **耐久性のあるワークフロー**: Temporal により生成 → 実行 → 修復までを信頼性高く再実行可能にオーケストレーション
+- **複数インターフェース**: CLI（`test-helper`）と REST API を提供
 
-```
-clean-interfaces/
-├── src/clean_interfaces/       # Main application code
-│   ├── __init__.py            # Package initialization
-│   ├── app.py                 # Application entry point
-│   ├── base.py                # Base component class
-│   ├── main.py                # CLI entry point with --dotenv support
-│   ├── types.py               # Type definitions
-│   ├── interfaces/            # Interface implementations
-│   │   ├── __init__.py
-│   │   ├── base.py           # Base interface class
-│   │   ├── cli.py            # CLI interface using Typer
-│   │   ├── factory.py        # Interface factory pattern
-│   │   └── restapi.py        # REST API interface using FastAPI
-│   ├── models/                # Data models
-│   │   ├── __init__.py
-│   │   ├── api.py            # API response models
-│   │   └── io.py             # I/O models (e.g., WelcomeMessage)
-│   └── utils/                 # Utility modules
-│       ├── __init__.py
-│       ├── file_handler.py    # File handling utilities
-│       ├── logger.py          # Structured logging setup
-│       ├── otel_exporter.py   # (removed) OpenTelemetry exporter (removed for stability)
-│       └── settings.py        # Application settings
-├── tests/                      # Test suite
-│   ├── unit/                  # Unit tests
-│   ├── api/                   # API tests
-│   └── e2e/                   # End-to-end tests
-├── docs/                       # Documentation
-├── constraints/                # Dependency constraints
-├── .env                       # Environment configuration (not in git)
-├── .env.example               # Example environment configuration
-├── pyproject.toml             # Project configuration
-├── noxfile.py                 # Task automation
-├── CLAUDE.md                  # AI assistant instructions
-└── README.md                  # This file
-```
+## 技術スタック
 
-## Quick Start
+- **Web フレームワーク**: FastAPI
+- **テスト**: pytest, Playwright
+- **依存管理**: uv
+- **タスクランナー**: nox
+- **静的解析/品質**: Ruff, Pyright（strict）
+- **バリデーション**: Pydantic v2
+- **ワークフローエンジン**: Temporal
+- **AI フレームワーク**: OpenAI Agents SDK
+- **ブラウザ制御**: Playwright MCP
+- **ドキュメンテーション**: MkDocs
 
-### Prerequisites
+各ツールの公式ドキュメントリンクは `CLAUDE.md` を参照してください。
 
--   Python 3.13 or higher
--   uv (Python package manager)
+$1
 
-### Installation
+## インストール
+
+### パッケージのインストール
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd clean-interfaces
+# プロジェクトをクローン
+git clone https://github.com/yourusername/test-helper-agent.git
+cd test-helper-agent
 
-# Create virtual environment and install dependencies
+# 依存関係をインストール（開発用とエージェント用の両方）
+uv pip install -e .[dev,agents]
+
+# Node.js 依存関係をインストール（TypeScript/ESLint用）
+npm install
+
+# これで test-helper コマンドが利用可能になります
+test-helper --help
+```
+
+### 環境設定
+
+`.env` ファイルをプロジェクトルートに作成し、以下を設定：
+
+```bash
+# OpenAI API設定
+OPENAI_API_KEY=your-api-key-here
+OPENAI_MODEL=gpt-4  # or gpt-4o-mini
+
+# エージェントバックエンド設定
+AGENT_BACKEND=sdk  # 実際のOpenAI APIを使用（mockでモックモード）
+```
+
+### CLIの使用方法
+
+#### 基本コマンド
+
+```bash
+# ヘルプの表示
+test-helper --help
+
+# 設定の確認
+test-helper config --show
+
+# カスタム .env ファイルの指定
+test-helper --dotenv /path/to/.env config --show
+```
+
+#### E2E テスト自動化コマンド
+
+```bash
+# キャプチャプランの作成
+test-helper e2e capture <project-id> <base-url> --output capture.json
+
+# テストの生成（キャプチャセッションから）
+test-helper e2e generate session.json --output test.spec.ts
+
+# TypeScript構文チェック
+test-helper e2e syntax-check test.spec.ts
+
+# TypeScript構文の自動修正
+test-helper e2e syntax-check test.spec.ts --fix
+
+# テスト失敗の診断
+test-helper e2e diagnose error.log
+
+# 失敗したテストの修正提案
+test-helper e2e fix test.spec.ts --error-log error.log
+```
+
+#### モックモードでの実行
+
+API キーを使用せずにモックモードでテストする場合：
+
+```bash
+# モックモードでテスト生成
+test-helper e2e generate session.json --output test.spec.ts --mock
+
+# モックモードで構文チェック（AI修正なし）
+test-helper e2e syntax-check test.spec.ts --fix --mock
+```
+
+### TypeScript/Playwright テストの検証
+
+生成されたテストの構文を検証し、自動修正：
+
+```bash
+# TypeScriptコンパイラとESLintでチェック
+npm run typecheck
+npm run lint
+
+# 自動修正
+npm run fix:all
+
+# または test-helper CLI を使用
+test-helper e2e syntax-check generated_test.spec.ts --fix
+```
+
+## Playwright セットアップ（初回のみ）
+
+Playwright はブラウザ本体のインストールが必要です。uv 経由で以下を実行してください。
+
+```bash
+# ブラウザインストール（Chromium 推奨）
+uv run playwright install chromium
+# もしくは全ブラウザ
+uv run playwright install
+
+# トレース/動画/スクリーンショット保存先の権限確認（必要に応じて）
+# Linux の場合に追加の OS 依存パッケージが必要となることがあります（下記参照）。
+```
+
+Linux で必要になりがちな依存パッケージ（例）:
+
+```bash
+# Debian/Ubuntu 系の例
+sudo apt-get update
+sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 \
+  libxkbcommon0 libxcomposite1 libxrandr2 libxdamage1 libgbm1 libasound2 \
+  libxshmfence1 libpango-1.0-0 libpangocairo-1.0-0 libgtk-3-0 fonts-liberation \
+  libx11-xcb1 libxcursor1
+```
+
+WSL2 での注意:
+
+- `E2E_HEADED=1` で GUI 表示する場合、X サーバ設定が必要です。ヘッドレス実行（`E2E_HEADED` 未設定）を推奨。
+- ファイルパスの改行コードや権限に注意してください。
+
+$2
+
+- **テストキャプチャ**: Playwright MCP でユーザー操作を記録
+- **テスト生成**: OpenAI Agents SDK で記録から Playwright テストコードを合成
+- **テスト解析**: 失敗原因を分析し修正案を提示（セレクタ更新などを自動適用）
+- **テスト保管**: ローカル JSON ベースのプロジェクト/テスト階層で管理
+
+ストレージ構造例:
+
+```
+data/projects/{project_id}/
+├── metadata.json          # プロジェクト設定
+├── tests/                 # 生成された Playwright テスト
+├── cache/                 # セレクタやパターンのキャッシュ
+└── history/               # テストのバージョン履歴
+```
+
+最近の変更:
+
+更新履歴は `IMPLEMENTATION_HISTORY.md` に移動しました。今後の更新内容もそちらに記載します。
+詳しくは `IMPLEMENTATION_HISTORY.md` を参照してください。
+
+## 開発ワークフロー（厳格 TDD）
+
+本リポジトリは `CLAUDE.md` に定義された 4 フェーズ・TDD 方針に従います。要点のみ抜粋します（詳細は `CLAUDE.md` を参照）。
+
+- フェーズ: Explore → Plan → Implement → Commit（実装前に必ず計画とテスト作成）
+- テスト作成順: E2E → API → Unit（抽象 → 具体）
+- 実装順: Unit → API → E2E（具体 → 抽象）
+- 品質ゲート: Ruff/Pyright を常時実行。抑止コメントの使用は禁止
+- 80%以上のカバレッジ必須
+
+便利コマンド（抜粋）:
+
+```bash
+# 代表的な実行
+nox -s test_unit
+nox -s test_api
+nox -s test_e2e
+
+# 品質チェック（変更毎に）
+nox -s lint
+nox -s typing
+nox -s format_code
+nox -s coverage
+```
+
+## リポジトリ構成（概要）
+
+```
+project_root/
+├── .claude/              # Claude Code 設定とカスタムコマンド
+├── .github/workflows/    # CI
+├── src/<library_name>/   # アプリケーションコード
+├── tests/                # Unit/API/E2E テスト
+├── docs/                 # ドキュメント（MkDocs）
+├── constraints/          # nox 生成の制約ファイル
+├── pyproject.toml        # 設定
+├── noxfile.py            # nox タスク
+├── README.md             # 本ファイル
+└── CLAUDE.md             # 開発規約および詳細ガイド
+```
+
+## テスト用サイト（test_sites）
+
+`test_sites/` には E2E テスト対象として使えるサンプル Web サイトが含まれます。セットアップや挙動の詳細は `test_sites/README.md` を参照してください。
+
+- `landing_static/` — HTML/CSS/JS の静的ランディングページ
+- `spa_tasks/` — バニラ JS + localStorage のタスク管理 SPA
+- `shop_multipage/` — Service Worker でモック API/トークンセッションを提供するマルチページのショップ
+
+ローカルでの提供例:
+
+```bash
+cd test_sites
+python -m http.server 8000
+# アクセス:
+# http://localhost:8000/landing_static/
+# http://localhost:8000/spa_tasks/
+# http://localhost:8000/shop_multipage/
+```
+
+## OPENAI_API_KEY を使った実行チュートリアル
+
+以下はサンプルサイトに対して実際にエージェントを動かす最小手順です。
+
+1. 依存関係の準備
+
+```bash
 uv sync
-
-# Copy environment configuration
-cp .env.example .env
-
-# Edit .env with your configuration
 ```
 
-### Running the Application
+2. テストサイトの起動
 
 ```bash
-# Run with default settings (uses .env file)
-uv run python -m clean_interfaces.main
-
-# Run with custom environment file
-uv run python -m clean_interfaces.main --dotenv prod.env
-
-# Show help
-uv run python -m clean_interfaces.main --help
+cd test_sites
+python -m http.server 8000 &
+cd -
 ```
 
-## Configuration
-
-### Environment Variables
-
-Configuration is managed through environment variables. See `.env.example` for all available options:
-
-| Variable         | Description                                  | Default | Options                                         |
-| ---------------- | -------------------------------------------- | ------- | ----------------------------------------------- |
-| `INTERFACE_TYPE` | Interface to use                             | `cli`   | `cli`, `restapi`                                |
-| `LOG_LEVEL`      | Logging level                                | `INFO`  | `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL` |
-| `LOG_FORMAT`     | Log output format                            | `json`  | `json`, `console`, `plain`                      |
-| `LOG_FILE_PATH`  | Log file path                                | None    | Any valid file path                             |
-| `OTEL_*`         | [Deprecated] OpenTelemetry exporter settings | -       | Removed                                         |
-
-### Using Custom Environment Files
-
-You can specify custom environment files using the `--dotenv` option:
+3. 環境変数の設定（OpenAI の API キー）
 
 ```bash
-# Development environment
-uv run python -m clean_interfaces.main --dotenv dev.env
-
-# Production environment
-uv run python -m clean_interfaces.main --dotenv prod.env
-
-# Testing environment
-uv run python -m clean_interfaces.main --dotenv test.env
+export OPENAI_API_KEY="<your-api-key>"
+# 任意: モデル、ブラウザ可視化など
+export OPENAI_MODEL="gpt-5"
+export E2E_HEADED=1        # ヘッドあり表示
+export E2E_SLOWMO=250      # 動作を 250ms スローモー
 ```
 
-## Development
-
-### Setup Development Environment
+4. プロジェクト作成とキャプチャ → 生成 → 実行（CLI）
 
 ```bash
-# Install development dependencies
-uv sync --extra dev
+# プロジェクト作成
+uv run test-helper project create --project-name "demo-shop"
 
-# Install pre-commit hooks
-uv run pre-commit install
+# キャプチャ（shop のログインシナリオ例）
+uv run test-helper capture --project-name "demo-shop" \
+  --url "http://localhost:8000/shop_multipage/" \
+  --prompt "ログインページに移動し、email に 'user@example.com'、password に 'password' を入力してログインしてください。その後、Products ページで最初の商品をカートに追加してください。"
+
+# テストコード生成
+uv run test-helper generate --project-name "demo-shop"
+
+# テスト実行（Playwright テストの実行）
+uv run test-helper execute --project-name "demo-shop"
 ```
 
-### Development Commands
-
-| Command              | Description         |
-| -------------------- | ------------------- |
-| `nox -s lint`        | Run code linting    |
-| `nox -s format_code` | Format code         |
-| `nox -s typing`      | Run type checking   |
-| `nox -s test`        | Run all tests       |
-| `nox -s security`    | Run security checks |
-| `nox -s docs`        | Build documentation |
-| `nox -s ci`          | Run all CI checks   |
-
-### Testing
+5. 直接 pytest でエージェント E2E を実行する場合
 
 ```bash
-# Run all tests
-nox -s test
-
-# Run specific test file
-uv run pytest tests/unit/clean_interfaces/test_app.py
-
-# Run with coverage
-uv run pytest --cov=src --cov-report=html
+# 環境変数 OPENAI_API_KEY が必須。なければ tests/e2e_web は skip されます
+pytest tests/e2e_web/ -m agent_browser -v
 ```
 
-### Code Quality
+補足:
 
-The project maintains high code quality standards:
+- 使える CLI サブコマンドや詳細オプションは `docs/guides/cli.md` を参照
+- Temporal を用いたワークフロー実行は `docs/guides/temporal_agents.md` を参照
 
--   **Type Checking**: Strict Pyright type checking
--   **Linting**: Comprehensive Ruff rules
--   **Formatting**: Automated with Ruff formatter
--   **Testing**: 80% minimum coverage requirement
--   **Security**: Regular security scanning
+## ドキュメント
 
-## Interface Types
+- インデックス: `docs/index.md`
+- インストール: `docs/installation.md`
+- クイックスタート: `docs/quickstart.md`
+- 開発ガイド: `docs/development/contributing.md`, `docs/development/testing.md`, `docs/development/code-style.md`
+- API/ガイド: `docs/guides/cli.md`, `docs/guides/restapi.md`, `docs/guides/temporal_agents.md`
 
-### CLI Interface
+## ライセンス
 
-The default interface provides a command-line interface using Typer:
-
-```bash
-# Run CLI interface
-INTERFACE_TYPE=cli uv run python -m clean_interfaces.main
-```
-
-Features:
-
--   Interactive command-line interface
--   Rich terminal output
--   Help documentation
--   Command completion
-
-### REST API Interface
-
-The REST API interface provides HTTP endpoints using FastAPI:
-
-```bash
-# Run REST API interface
-INTERFACE_TYPE=restapi uv run python -m clean_interfaces.main
-```
-
-Features:
-
--   OpenAPI documentation
--   Automatic request validation
--   JSON responses
--   Async support
-
-## Logging
-
-The application uses structured logging with multiple output formats:
-
-### JSON Format (Production)
-
-```json
-{
-    "timestamp": "2025-07-20T10:30:45.123Z",
-    "level": "info",
-    "logger": "clean_interfaces.app",
-    "message": "Application started",
-    "interface": "cli"
-}
-```
-
-### Console Format (Development)
-
-```
-2025-07-20 10:30:45 [INFO] clean_interfaces.app: Application started interface=cli
-```
-
-### OpenTelemetry Integration
-
-When enabled, logs can be exported to OpenTelemetry collectors:
-
-```bash
-# Enable OTLP export
-# OpenTelemetry exporter was removed. Trace context may still be included if OTEL is present.
-```
-
-## Documentation
-
-### Building Documentation
-
-```bash
-# Build with Sphinx (API documentation)
-nox -s docs
-
-# Build with MkDocs (user guide)
-uv run mkdocs build
-
-# Serve documentation locally
-uv run mkdocs serve
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run quality checks (`nox -s ci`)
-5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
-
-### Development Guidelines
-
--   Follow conventional commits
--   Maintain test coverage above 80%
--   Ensure all type checks pass
--   Update documentation as needed
--   Add tests for new features
-
-### Pre-commit Setup
-
-This project uses pre-commit hooks to ensure code quality. The hooks run automatically before each commit.
-
-#### Installation
-
-```bash
-# Install pre-commit hooks
-uv run pre-commit install
-```
-
-#### Manual Run
-
-```bash
-# Run on all files
-uv run pre-commit run --all-files
-
-# Run on staged files only
-uv run pre-commit run
-```
-
-#### Hook Configuration
-
-The pre-commit hooks use nox to ensure consistency with the project's configuration:
-
--   **ruff format**: Formats code according to `pyproject.toml` settings
--   **ruff lint**: Checks and fixes linting issues based on `pyproject.toml` rules
--   **pyright**: Type checks the code using project settings
-
-All hooks respect the configuration in `pyproject.toml`, ensuring no divergence between pre-commit and regular development commands.
-
-### Testing Helpers
-
-This project includes testing helpers to make debugging easier:
-
-#### Pexpect Debug Helper
-
-For E2E tests using pexpect, use the debug helper:
-
-```python
-from tests.helpers.pexpect_debug import run_cli_with_debug
-
-# Run with debug output enabled
-output, exitstatus = run_cli_with_debug(
-    "python -m clean_interfaces.main --help",
-    env=clean_env,
-    timeout=10,
-    debug=True,  # Enable debug output
-)
-```
-
-Enable debug mode in CI by setting `PYTEST_DEBUG=1` environment variable.
-
-### GitHub Actions Integration
-
-This project includes a GitHub Actions workflow for Claude Code integration (`.github/workflows/claude.yml`).
-
-**⚠️ Current Status (2025-07-20)**: The `claude-code-action@beta` is experiencing issues where the Claude CLI is not properly installed in the GitHub Actions environment. Until Anthropic fixes this issue, the workflow will not function correctly. You can still use Claude Code manually through the web interface.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
--   Built with modern Python tooling
--   Inspired by clean architecture principles
--   Designed for extensibility and maintainability
+本プロジェクトは `LICENSE` の内容に従います。

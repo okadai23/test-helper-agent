@@ -1,81 +1,31 @@
-# Clean Interfaces
+# Test Helper Agent
 
-Welcome to **Clean Interfaces** - a flexible Python application framework with multiple interface types and comprehensive logging support.
+An AI-powered E2E test automation agent that generates and maintains Playwright tests from natural language.
+
+## Overview
+
+This project provides an AI agent system designed to automate the creation and maintenance of end-to-end (E2E) tests for web applications. By leveraging natural language instructions, it can perform browser interactions, generate robust Playwright test code, and even automatically fix broken tests.
+
+The system is built on a modern stack including:
+
+-   **Playwright MCP**: For enabling Large Language Models (LLMs) to interact with and control a web browser.
+-   **OpenAI Agents SDK**: For building and orchestrating the AI agents.
+-   **Temporal**: For creating durable and reliable workflows that manage the entire test lifecycle (capture, generation, execution, and fixing).
 
 ## Features
 
--   🚀 **Multiple Interface Types**: Support for CLI and REST API interfaces
--   ⚙️ **Flexible Configuration**: Environment-based configuration with `.env` file support
--   📝 **Structured Logging**: Advanced logging with OpenTelemetry integration
--   🐍 **Modern Python**: Built with Python 3.13+ and modern tooling
--   ✅ **Comprehensive Testing**: Unit, API, and E2E test coverage
--   🔍 **Type Safety**: Full type hints with strict Pyright checking
--   🎨 **Code Quality**: Automated linting and formatting with Ruff
--   📦 **Dependency Management**: Managed with uv for fast, reliable builds
+-   **Natural Language to E2E Tests**: Generate comprehensive E2E tests simply by describing a user flow in natural language.
+-   **Automated Test Generation**: Captures browser interactions and converts them into clean, deterministic Playwright test code (`*.spec.ts`).
+-   **Auto-Healing Tests**: Automatically detects and fixes failing tests caused by UI changes (e.g., updated selectors).
+-   **Black-box and White-box Modes**: Supports both crawling a live application (black-box) and analyzing source code for test generation (white-box).
+-   **Accessibility & Usability Testing**: Integrates `@axe-core/playwright` to perform automated accessibility checks during test execution.
+-   **Durable Workflows**: Uses Temporal to orchestrate the complex, long-running processes of test generation and maintenance, ensuring reliability and re-runnability.
+-   **Multiple Interfaces**: Provides both a CLI (`test-helper`) and a REST API for interacting with the system.
 
 ## Quick Start
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/clean-interfaces.git
-cd clean-interfaces
+Refer to the [Installation](./installation.md) and [Quickstart](./quickstart.md) guides for details on how to set up and run the application.
 
-# Install dependencies
-uv sync
+## Development
 
-# Copy environment configuration
-cp .env.example .env
-
-# Run the application (CLI mode)
-uv run python -m clean_interfaces.main
-
-# Run with custom environment file
-uv run python -m clean_interfaces.main --dotenv prod.env
-
-# Run REST API mode
-INTERFACE_TYPE=restapi uv run python -m clean_interfaces.main
-```
-
-## Project Overview
-
-Clean Interfaces provides a clean, extensible architecture for building Python applications with multiple interface types. Whether you need a command-line tool, a REST API, or both, Clean Interfaces has you covered.
-
-### Key Components
-
--   **Interface System**: Factory pattern for creating different interface types
--   **Configuration Management**: Pydantic-based settings with environment variable support
--   **Logging System**: Structured logging with multiple output formats and OpenTelemetry integration
--   **Type Safety**: Full type annotations with strict checking
-
-## Documentation Structure
-
--   **[Getting Started](installation.md)**: Installation and quick start guides
--   **[User Guide](guides/cli.md)**: Detailed guides for using the framework
--   **[API Reference](api/overview.md)**: Complete API documentation
--   **[Development](development/contributing.md)**: Contributing and development guides
-
-## Development Commands
-
-```bash
-# Run tests
-nox -s test
-
-# Run linting
-nox -s lint
-
-# Format code
-nox -s format_code
-
-# Type checking
-nox -s typing
-
-# Run all CI checks
-nox -s ci
-
-# Build documentation
-nox -s docs
-```
-
-## License
-
-This project is licensed under the MIT License.
+For details on how to contribute, set up a development environment, and run tests, see the [Development](./development/contributing.md) section.

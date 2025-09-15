@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Acme Shop — 商品一覧</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <header class="shop-header">
+      <a href="index.html" class="brand">Acme Shop</a>
+      <nav class="shop-nav">
+        <a href="index.html" data-testid="nav-home">商品</a>
+        <a href="cart.html" data-testid="nav-cart">カート(<span id="cart-count">0</span>)</a>
+        <a id="account-link" href="login.html" data-testid="nav-login">ログイン</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <h1>商品一覧</h1>
+      <div id="products" class="grid" data-testid="product-list"></div>
+    </main>
+  </body>
+  </html>
+

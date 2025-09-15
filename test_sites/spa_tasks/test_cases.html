@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mini Tasks — Test Cases</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif; margin:0; padding:0; background:#0b1020; color:#e5e7eb; }
+      .bar { position:sticky; top:0; background:#0f172a; padding:8px; border-bottom:1px solid #1f2937; display:grid; gap:8px; }
+      .row { display:flex; gap:8px; flex-wrap:wrap; }
+      button, select, input { padding:.4rem .6rem; border-radius:6px; border:1px solid #1f2937; background:#111827; color:#e5e7eb; }
+      iframe { width:100%; height: calc(100vh - 120px); border:0; }
+      .note { color:#94a3b8; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <div class="row">
+        <label>Fixture
+          <select id="fixture">
+            <option value="empty">empty</option>
+            <option value="few" selected>few</option>
+            <option value="many">many</option>
+            <option value="corrupt">corrupt</option>
+          </select>
+        </label>
+        <label>Route
+          <select id="route">
+            <option value="#/all">#/all</option>
+            <option value="#/active">#/active</option>
+            <option value="#/completed">#/completed</option>
+          </select>
+        </label>
+        <button id="load">Load</button>
+        <span class="note">iframeに読み込み: index.html?fixture=&route=</span>
+      </div>
+      <div class="row">
+        <button id="add">Add Task</button>
+        <button id="toggle-first">Toggle First Done</button>
+        <button id="delete-first">Delete First</button>
+        <label>Search <input id="search" placeholder="検索"/></label>
+        <label>Sort
+          <select id="sort">
+            <option value="created">created</option>
+            <option value="priority">priority</option>
+            <option value="title">title</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <iframe id="app" src="about:blank" data-testid="iframe"></iframe>
+    <script>
+      const app = document.getElementById('app');
+      function buildUrl() {
+        const f = document.getElementById('fixture').value;
+        const r = document.getElementById('route').value;
+        if (f === 'corrupt') return `index.html?corrupt=1&route=${encodeURIComponent(r)}`;
+        return `index.html?fixture=${encodeURIComponent(f)}&route=${encodeURIComponent(r)}`;
+      }
+      document.getElementById('load').addEventListener('click', ()=> app.src = buildUrl());
+      document.getElementById('add').addEventListener('click', ()=> {
+        const w = app.contentWindow;
+        const title = w.document.getElementById('task-title');
+        const form = w.document.getElementById('task-form');
+        title.value = 'E2E追加タスク';
+        form.dispatchEvent(new w.Event('submit', { bubbles:true, cancelable:true }));
+      });
+      document.getElementById('toggle-first').addEventListener('click', ()=> {
+        const w = app.contentWindow;
+        const first = w.document.querySelector('.task-list input[type="checkbox"]');
+        if (first) { first.click(); }
+      });
+      document.getElementById('delete-first').addEventListener('click', ()=> {
+        const w = app.contentWindow;
+        const btn = w.document.querySelector('.actions button[data-testid^="task-delete-"]');
+        if (btn) { btn.click(); const dlg = w.document.getElementById('confirm-dialog'); dlg.close('ok'); }
+      });
+      document.getElementById('search').addEventListener('input', (e)=> {
+        const w = app.contentWindow;
+        const s = w.document.getElementById('search'); s.value = e.target.value;
+        s.dispatchEvent(new w.Event('input', { bubbles:true }));
+      });
+      document.getElementById('sort').addEventListener('change', (e)=> {
+        const w = app.contentWindow;
+        const s = w.document.getElementById('sort'); s.value = e.target.value;
+        s.dispatchEvent(new w.Event('change', { bubbles:true }));
+      });
+      // initial load
+      app.src = buildUrl();
+    </script>
+  </body>
+  </html>
+

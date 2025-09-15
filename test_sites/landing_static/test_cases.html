@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Landing — Test Cases</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif; margin:0; background:#0b1020; color:#e5e7eb; }
+      .bar { position:sticky; top:0; background:#0f172a; padding:8px; border-bottom:1px solid #1f2937; display:grid; gap:8px; }
+      .row { display:flex; gap:8px; flex-wrap:wrap; }
+      button, input { padding:.4rem .6rem; border-radius:6px; border:1px solid #1f2937; background:#111827; color:#e5e7eb; }
+      iframe { width:100%; height: calc(100vh - 110px); border:0; }
+      a.btn { color:#e5e7eb; text-decoration:none; padding:.4rem .6rem; border-radius:6px; border:1px solid #1f2937; background:#111827; }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      <div class="row">
+        <a class="btn" id="load" href="#">Load index</a>
+        <a class="btn" id="goto-features" href="#">Go Features</a>
+        <a class="btn" id="goto-pricing" href="#">Go Pricing</a>
+        <a class="btn" id="goto-testimonials" href="#">Go Testimonials</a>
+        <a class="btn" id="goto-contact" href="#">Go Contact</a>
+        <button id="toggle-nav">Toggle Mobile Nav</button>
+        <button id="carousel-prev">Carousel Prev</button>
+        <button id="carousel-next">Carousel Next</button>
+      </div>
+      <div class="row">
+        <button id="form-invalid">Submit Invalid</button>
+        <button id="form-valid">Submit Valid</button>
+      </div>
+    </div>
+    <iframe id="app" src="about:blank" data-testid="iframe"></iframe>
+    <script>
+      const app = document.getElementById('app');
+      const load = () => app.src = 'index.html';
+      document.getElementById('load').addEventListener('click', (e)=>{ e.preventDefault(); load(); });
+      document.getElementById('goto-features').addEventListener('click', (e)=>{ e.preventDefault(); app.contentWindow.location.hash = '#features'; });
+      document.getElementById('goto-pricing').addEventListener('click', (e)=>{ e.preventDefault(); app.contentWindow.location.hash = '#pricing'; });
+      document.getElementById('goto-testimonials').addEventListener('click', (e)=>{ e.preventDefault(); app.contentWindow.location.hash = '#testimonials'; });
+      document.getElementById('goto-contact').addEventListener('click', (e)=>{ e.preventDefault(); app.contentWindow.location.hash = '#contact'; });
+      document.getElementById('toggle-nav').addEventListener('click', ()=>{ const w = app.contentWindow; w.document.querySelector('[data-testid="nav-toggle"]').click(); });
+      document.getElementById('carousel-prev').addEventListener('click', ()=>{ const w = app.contentWindow; w.document.getElementById('prev').click(); });
+      document.getElementById('carousel-next').addEventListener('click', ()=>{ const w = app.contentWindow; w.document.getElementById('next').click(); });
+      document.getElementById('form-invalid').addEventListener('click', ()=>{
+        const w = app.contentWindow;
+        const f = w.document.getElementById('contact-form');
+        const name = w.document.querySelector('[data-testid="contact-name"]');
+        const email = w.document.querySelector('[data-testid="contact-email"]');
+        const msg = w.document.querySelector('[data-testid="contact-message"]');
+        name.value = ''; email.value = 'not-an-email'; msg.value = '';
+        f.dispatchEvent(new w.Event('submit', { bubbles:true, cancelable:true }));
+      });
+      document.getElementById('form-valid').addEventListener('click', ()=>{
+        const w = app.contentWindow;
+        const f = w.document.getElementById('contact-form');
+        const name = w.document.querySelector('[data-testid="contact-name"]');
+        const email = w.document.querySelector('[data-testid="contact-email"]');
+        const msg = w.document.querySelector('[data-testid="contact-message"]');
+        name.value = '田中 太郎'; email.value = 'taro@example.com'; msg.value = '資料について相談したいです';
+        f.dispatchEvent(new w.Event('submit', { bubbles:true, cancelable:true }));
+      });
+      // initial
+      load();
+    </script>
+  </body>
+  </html>
+

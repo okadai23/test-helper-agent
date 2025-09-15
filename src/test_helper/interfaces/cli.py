@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, cast
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import typer
 from rich.console import Console
@@ -69,6 +70,31 @@ class CLIInterface(BaseInterface):
         except ImportError:
             # Project module not available, skip
             pass
+
+        # Add E2E test automation subcommands
+        try:
+            from test_helper.cli.e2e import app as e2e_app
+
+            self.app.add_typer(
+                e2e_app,
+                name="e2e",
+                help="E2E test automation commands",
+            )
+        except ImportError:
+            # E2E module not available, skip
+            pass
+
+        # Add new comprehensive E2E commands
+        self._setup_e2e_commands()
+
+        # Add server command
+        self.app.command(name="server")(self._server_command)
+
+        # Add version command
+        self.app.command(name="version")(self._version_command)
+
+        # Add config command
+        self.app.command(name="config")(self._config_command)
 
         # Add a callback that shows welcome when no command is specified
         self.app.callback(invoke_without_command=True)(self._main_callback)
@@ -233,3 +259,287 @@ class CLIInterface(BaseInterface):
 
         """
         return self.storage.delete_project(project_id)
+
+    def _create_e2e_app(self) -> typer.Typer:
+        """Create E2E commands Typer app."""
+        return typer.Typer(
+            name="e2e",
+            help="E2E test automation commands",
+            no_args_is_help=True,
+        )
+
+    def _setup_e2e_commands(self) -> None:
+        """Set up comprehensive E2E commands."""
+        e2e_app = self._create_e2e_app()
+
+        @e2e_app.command("capture")
+        def capture(  # pyright: ignore[reportUnusedFunction]
+            project_id: str = typer.Argument(..., help="Project ID"),
+            base_url: str = typer.Argument(..., help="Base URL to test"),
+            output: Path = typer.Option(
+                Path("capture.json"), "--output", "-o", help="Output file"
+            ),
+        ) -> None:
+            """Create capture plan for a project."""
+            import json
+
+            from test_helper.agents.capture_agent import CaptureAgent
+            from test_helper.utils.settings import get_e2e_settings
+
+            settings = get_e2e_settings()
+
+            if settings.agent_backend != "sdk" or not settings.openai_api_key:
+                console.print(
+                    "[red]Error: SDK mode with API key required for capture[/red]"
+                )
+                raise typer.Exit(1)
+
+            import openai
+
+            assert settings.openai_api_key is not None  # noqa: S101 - Type guard
+            client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+
+            # Create mock storage
+            class MockStorage:
+                def save(self, data: Any) -> None:
+                    pass
+
+                def load(self, _key: str) -> dict[str, Any]:
+                    return {}
+
+            capture_agent = CaptureAgent(
+                openai_client=client,
+                storage=MockStorage(),  # type: ignore[arg-type]
+                pw=None,
+            )
+
+            # Create project object
+            project = type(
+                "Project",
+                (),
+                {
+                    "id": project_id,
+                    "name": f"Project {project_id}",
+                    "base_url": base_url,
+                    "test_scenarios": ["Navigate and capture page state"],
+                },
+            )()
+
+            console.print(f"Creating capture plan for {project_id} at {base_url}...")
+            plan = capture_agent.plan_capture(project)
+
+            # Save to file
+            output.write_text(json.dumps(plan, indent=2))
+            console.print(f"[green]✅ Capture plan saved to {output}[/green]")
+            console.print(f"  Steps: {len(plan.get('steps', []))}")
+
+        @e2e_app.command("generate")
+        def generate(  # pyright: ignore[reportUnusedFunction]
+            session_file: Path = typer.Argument(..., help="Session JSON file"),
+            output: Path = typer.Option(
+                Path("test.spec.ts"), "--output", "-o", help="Output file"
+            ),
+        ) -> None:
+            """Generate test from capture session."""
+            import json
+
+            from test_helper.agents.generator_agent import GeneratorAgent
+            from test_helper.utils.settings import get_e2e_settings
+
+            settings = get_e2e_settings()
+
+            if not session_file.exists():
+                console.print(
+                    f"[red]Error: Session file not found: {session_file}[/red]"
+                )
+                raise typer.Exit(1)
+
+            if settings.agent_backend != "sdk" or not settings.openai_api_key:
+                console.print(
+                    "[red]Error: SDK mode with API key required for generation[/red]"
+                )
+                raise typer.Exit(1)
+
+            import openai
+
+            assert settings.openai_api_key is not None  # noqa: S101 - Type guard
+            client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+
+            # Create mock storage
+            class MockStorage:
+                def save(self, data: Any) -> None:
+                    pass
+
+                def load(self, _key: str) -> dict[str, Any]:
+                    return {}
+
+            generator_agent = GeneratorAgent(
+                openai_client=client,
+                storage=MockStorage(),
+            )
+
+            session_data = json.loads(session_file.read_text())
+            console.print(f"Generating test from session: {session_file}")
+
+            test_code = generator_agent.generate_from_session(session_data)
+
+            # Save to file
+            output.write_text(test_code)
+            console.print(f"[green]✅ Test code saved to {output}[/green]")
+
+        @e2e_app.command("diagnose")
+        def diagnose(  # pyright: ignore[reportUnusedFunction]
+            log_file: Path = typer.Argument(..., help="Error log file"),
+        ) -> None:
+            """Diagnose test failure from logs."""
+            import json
+
+            from test_helper.agents.diagnostic_agent import DiagnosticAgent
+            from test_helper.utils.settings import get_e2e_settings
+
+            settings = get_e2e_settings()
+
+            if not log_file.exists():
+                console.print(f"[red]Error: Log file not found: {log_file}[/red]")
+                raise typer.Exit(1)
+
+            if settings.agent_backend != "sdk" or not settings.openai_api_key:
+                console.print(
+                    "[red]Error: SDK mode with API key required for diagnosis[/red]"
+                )
+                raise typer.Exit(1)
+
+            import openai
+
+            assert settings.openai_api_key is not None  # noqa: S101 - Type guard
+            client = openai.OpenAI(api_key=settings.openai_api_key.get_secret_value())
+
+            diagnostic_agent = DiagnosticAgent(openai_client=client)
+
+            logs = json.loads(log_file.read_text())
+            console.print(f"Diagnosing failure from: {log_file}")
+
+            diagnosis = diagnostic_agent.diagnose_failure(logs)
+
+            console.print("[yellow]Diagnosis:[/yellow]")
+            console.print(f"  Category: {diagnosis.category.value}")
+            console.print(f"  Confidence: {diagnosis.confidence:.1%}")
+            if diagnosis.root_cause:
+                console.print(f"  Root cause: {diagnosis.root_cause}")
+            if diagnosis.recommendations:
+                console.print("  Recommendations:")
+                for recommendation in diagnosis.recommendations[:3]:
+                    console.print(f"    - {recommendation}")
+
+        @e2e_app.command("syntax-check")
+        def syntax_check(  # pyright: ignore[reportUnusedFunction]
+            test_file: Path = typer.Argument(..., help="Path to TypeScript test file"),
+            fix: bool = typer.Option(False, "--fix", help="Auto-fix syntax errors"),
+            mock: bool = typer.Option(
+                False, "--mock", help="Use mock mode for AI fixes"
+            ),
+        ) -> None:
+            """Check and optionally fix TypeScript/Playwright test syntax."""
+            from test_helper.services.syntax_fix_service import SyntaxFixService
+            from test_helper.utils.settings import get_e2e_settings
+
+            settings = get_e2e_settings()
+
+            if not test_file.exists():
+                console.print(f"[red]Error: Test file not found: {test_file}[/red]")
+                raise typer.Exit(1)
+
+            if fix and not mock and not settings.openai_api_key:
+                console.print(
+                    "[yellow]Warning: No API key for AI fixes, using pattern-based fixes only[/yellow]"
+                )
+                service = SyntaxFixService(openai_client=None)
+            elif fix and not mock:
+                import openai
+
+                assert settings.openai_api_key is not None  # noqa: S101 - Type guard
+                client = openai.OpenAI(
+                    api_key=settings.openai_api_key.get_secret_value()
+                )
+                service = SyntaxFixService(openai_client=client)
+            else:
+                service = SyntaxFixService(openai_client=None)
+
+            if fix:
+                console.print(f"Checking and fixing syntax in: {test_file}")
+                result = service.fix_test_file(test_file)
+
+                if result.success:
+                    console.print(
+                        f"[green]✅ Fixed {len(result.errors_fixed)} errors in {result.iterations} iterations[/green]"
+                    )
+                else:
+                    console.print(
+                        f"[yellow]⚠️ {len(result.final_errors)} errors remain:[/yellow]"
+                    )
+                    for error in result.final_errors[:5]:  # Show first 5 errors
+                        console.print(f"  Line {error.line}: {error.message}")
+            else:
+                console.print(f"Validating syntax in: {test_file}")
+                is_valid = service.validate_test_file(test_file)
+
+                if is_valid:
+                    console.print("[green]✅ No syntax errors found[/green]")
+                else:
+                    console.print(
+                        "[red]❌ Syntax errors detected. Use --fix to auto-fix.[/red]"
+                    )
+                    raise typer.Exit(1)
+
+        # Add to main app if not already added
+        if "e2e" not in [cmd.name for cmd in self.app.registered_commands]:
+            self.app.add_typer(e2e_app, name="e2e")
+
+    def _server_command(
+        self,
+        port: int = typer.Option(8000, "--port", "-p", help="Port to run server on"),
+        host: str = typer.Option("0.0.0.0", "--host", help="Host to bind to"),  # noqa: S104
+        reload: bool = typer.Option(False, "--reload", help="Enable auto-reload"),
+    ) -> None:
+        """Start the Test Helper API server."""
+        console.print(f"Starting Test Helper API server on {host}:{port}")
+
+        import uvicorn
+
+        uvicorn.run(
+            "test_helper.interfaces.restapi:app",
+            host=host,
+            port=port,
+            reload=reload,
+        )
+
+    def _version_command(self) -> None:
+        """Show version information."""
+        from importlib.metadata import version as get_version
+
+        try:
+            ver = get_version("test-helper-agent")
+            console.print(f"test-helper version {ver}")
+        except Exception:
+            console.print("test-helper version 0.1.0")
+
+    def _config_command(
+        self,
+        show: bool = typer.Option(False, "--show", help="Show current configuration"),
+    ) -> None:
+        """Manage Test Helper configuration."""
+        from test_helper.utils.settings import get_e2e_settings
+
+        settings = get_e2e_settings()
+
+        if show:
+            console.print("Current configuration:")
+            console.print(f"  Agent Backend: {settings.agent_backend}")
+            console.print(f"  OpenAI Model: {settings.openai_model}")
+            console.print(f"  Default Browser: {settings.default_browser}")
+            console.print(f"  Data Path: {settings.e2e_data_path}")
+            console.print(
+                f"  API Key Set: {'Yes' if settings.openai_api_key else 'No'}"
+            )
+        else:
+            console.print("Use --show to display current configuration")

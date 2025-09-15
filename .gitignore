@@ -189,3 +189,5 @@ htmlcov/
 Thumbs.db
 .serena/
 data/
+test-results/
+node_modules/

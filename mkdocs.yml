@@ -50,6 +50,7 @@ nav:
   - Development:
       - Contributing: development/contributing.md
       - Testing: development/testing.md
+      - E2E Web Tests: development/e2e-web.md
       - Code Style: development/code-style.md
   - About:
       - License: about/license.md

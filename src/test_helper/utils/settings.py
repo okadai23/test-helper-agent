@@ -1,6 +1,7 @@
 """Application settings management using Pydantic Settings (test_helper)."""
 
 from enum import Enum
+from pathlib import Path
 from typing import Any, ClassVar, Literal
 
 from pydantic import Field, SecretStr, field_validator
@@ -13,6 +14,31 @@ class OTelExportMode(str, Enum):
     FILE = "file"
     OTLP = "otlp"
     BOTH = "both"
+
+
+# Global variable to store custom env file path
+_custom_env_file: Path | None = None
+
+
+def set_env_file(env_file: str | Path | None) -> None:
+    """Set the custom environment file path.
+
+    Args:
+        env_file: Path to the .env file, or None to use default
+
+    """
+    global _custom_env_file  # noqa: PLW0603
+    _custom_env_file = Path(env_file) if env_file else None
+
+
+def get_env_file() -> Path | None:
+    """Get the custom environment file path.
+
+    Returns:
+        Path to the .env file, or None if using default
+
+    """
+    return _custom_env_file
 
 
 class LoggingSettings(BaseSettings):
@@ -67,6 +93,14 @@ class LoggingSettings(BaseSettings):
         description="OpenTelemetry export timeout in milliseconds",
         ge=1,
     )
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize settings with custom env file support."""
+        env_file = get_env_file()
+        if env_file:
+            # Override the env_file in model_config
+            self.model_config["env_file"] = str(env_file)
+        super().__init__(**kwargs)
 
     @field_validator("log_level")
     @classmethod
@@ -125,6 +159,14 @@ class InterfaceSettings(BaseSettings):
         default="cli",
         description="Type of interface to use (cli, restapi)",
     )
+
+    def __init__(self, **kwargs: Any) -> None:
+        """Initialize settings with custom env file support."""
+        env_file = get_env_file()
+        if env_file:
+            # Override the env_file in model_config
+            self.model_config["env_file"] = str(env_file)
+        super().__init__(**kwargs)
 
     @field_validator("interface_type")
     @classmethod
@@ -240,6 +282,72 @@ class E2ESettings(BaseSettings):
         le=65535,
     )
 
+    # Accessibility (a11y) scan settings
+    enable_a11y_scan: bool = Field(
+        default=True,
+        description="Enable accessibility scan using axe-core integration",
+    )
+
+    a11y_tags: list[str] = Field(
+        default_factory=lambda: ["wcag2a", "wcag2aa", "wcag21aa"],
+        description="WCAG tags to include in a11y scan",
+    )
+    # Browser-use MCP settings
+    browser_use_enabled: bool = Field(
+        default=True,
+        description="Enable browser-use MCP integration",
+    )
+
+    browser_use_mcp_port: int = Field(
+        default=3002,
+        description="Port for browser-use MCP server connection",
+        ge=1024,
+        le=65535,
+    )
+
+    browser_use_task_timeout: int = Field(
+        default=300,
+        description="Default timeout for browser-use tasks in seconds",
+        ge=10,
+        le=1800,
+    )
+
+    browser_use_max_steps: int = Field(
+        default=50,
+        description="Maximum steps for browser-use agent tasks",
+        ge=1,
+        le=200,
+    )
+
+    browser_use_llm_model: str = Field(
+        default="gpt-4o-mini",
+        description="LLM model for browser-use agent",
+    )
+
+    browser_use_temperature: float = Field(
+        default=0.1,
+        description="Temperature for browser-use LLM",
+        ge=0.0,
+        le=2.0,
+    )
+
+    browser_use_enable_screenshots: bool = Field(
+        default=True,
+        description="Enable screenshot capture in browser-use",
+    )
+
+    browser_use_retry_failed: bool = Field(
+        default=True,
+        description="Retry failed actions in browser-use",
+    )
+
+    browser_use_max_retries: int = Field(
+        default=3,
+        description="Maximum retries for failed browser-use actions",
+        ge=0,
+        le=10,
+    )
+
     # Test generation settings
     test_generation_timeout: int = Field(
         default=5000,
@@ -311,6 +419,14 @@ class E2ESettings(BaseSettings):
         description="Temporal backend (mock or sdk)",
     )
 
+    # Agent fetch limits
+    agent_fetch_max_chars: int = Field(
+        default=20000,
+        description="Max characters to return from fetch tool",
+        ge=1000,
+        le=200000,
+    )
+
     @field_validator("openai_model")
     @classmethod
     def validate_openai_model(cls, v: str) -> str:
@@ -330,6 +446,32 @@ class E2ESettings(BaseSettings):
             raise ValueError(msg)
         return v
 
+    @field_validator("browser_use_llm_model")
+    @classmethod
+    def validate_browser_use_llm_model(cls, v: str) -> str:
+        """Validate browser-use LLM model names to prevent injection."""
+        allowed = {
+            "gpt-4o",
+            "gpt-4o-mini",
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4.1-nano",
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+            "gemini-2.5-flash",
+            "gemini-pro",
+            "claude-3-haiku",
+            "claude-3-sonnet",
+            "claude-3-opus",
+        }
+        if v not in allowed:
+            msg = (
+                f"Invalid browser-use LLM model: {v}. Must be one of {sorted(allowed)}"
+            )
+            raise ValueError(msg)
+        return v
+
     @field_validator("default_browser")
     @classmethod
     def validate_browser(cls, v: str) -> str:
@@ -341,8 +483,14 @@ class E2ESettings(BaseSettings):
         return v.lower()
 
     def __init__(self, **kwargs: Any) -> None:
-        """Initialize E2E settings."""
+        """Initialize E2E settings with custom env file support."""
+        env_file = get_env_file()
+        if env_file:
+            # Override the env_file in model_config
+            self.model_config["env_file"] = str(env_file)
+
         super().__init__(**kwargs)
+
         # Import Path here to avoid issues
         from pathlib import Path
 
@@ -350,13 +498,21 @@ class E2ESettings(BaseSettings):
             self.e2e_data_path = Path(self.e2e_data_path)
 
 
-def get_e2e_settings() -> E2ESettings:
+def get_e2e_settings(env_file: str | Path | None = None) -> E2ESettings:
     """Get the global E2E settings instance.
+
+    Args:
+        env_file: Optional path to .env file to use
 
     Returns:
         E2ESettings: The E2E settings instance
 
     """
+    if env_file:
+        set_env_file(env_file)
+        # Reset instance to reload with new env file
+        E2ESettings.instance = None
+
     if E2ESettings.instance is None:
         E2ESettings.instance = E2ESettings()
     return E2ESettings.instance
@@ -368,3 +524,4 @@ def reset_e2e_settings() -> None:
     This is mainly useful for testing.
     """
     E2ESettings.instance = None
+    set_env_file(None)

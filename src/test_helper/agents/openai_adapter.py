@@ -10,16 +10,17 @@ from __future__ import annotations
 import asyncio
 import importlib
 import json
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any, Protocol, cast, runtime_checkable
 
 
-@dataclass(slots=True)
+@dataclass
 class OpenAIAgentAdapter:
     """Adapter for orchestrating agent prompts with OpenAI SDK."""
 
     client: Any
-    model: str = "gpt-4o-mini"
+    model: str = "gpt-5"
 
     def _run(self, coro: Any) -> Any:
         """Run an async client call in a temporary event loop if needed.
@@ -31,9 +32,10 @@ class OpenAIAgentAdapter:
         except RuntimeError:
             loop = None
         if loop and loop.is_running():  # pragma: no cover - rare in our tests
-            # Avoid mixing loop APIs; advise using async interface instead.
-            msg = "An event loop is already running. Use the async API instead."
-            raise RuntimeError(msg)
+            # Run the coroutine in a separate thread to avoid nested loop issues
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(asyncio.run, coro)
+                return future.result()
         return asyncio.run(coro)
 
     def _ask(self, system: str, user: str) -> str:
@@ -68,14 +70,17 @@ class OpenAIAgentAdapter:
             return cast("str", getattr(result, "content", "")) or ""
         except (ModuleNotFoundError, ImportError, AttributeError, TypeError):
             # Fallback to Chat Completions API
+            # Use gpt-4.1 if model is gpt-5 or unknown
+            model_to_use = "gpt-4.1" if self.model == "gpt-5" else self.model
             response: Any = self._run(
                 self.client.chat.completions.create(
-                    model=self.model,
+                    model=model_to_use,
                     messages=[
                         {"role": "system", "content": system},
                         {"role": "user", "content": user},
                     ],
                     temperature=0.2,
+                    max_completion_tokens=2000,  # Use new parameter name
                 ),
             )
             return cast("str", response.choices[0].message.content)
@@ -111,13 +116,16 @@ class OpenAIAgentAdapter:
             result: Any = await agent.run(conversation)
             return cast("str", getattr(result, "content", "")) or ""
         except (ModuleNotFoundError, ImportError, AttributeError, TypeError):
+            # Use gpt-4.1 if model is gpt-5 or unknown
+            model_to_use = "gpt-4.1" if self.model == "gpt-5" else self.model
             response: Any = await self.client.chat.completions.create(
-                model=self.model,
+                model=model_to_use,
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
                 temperature=0.2,
+                max_completion_tokens=2000,  # Use new parameter name
             )
             return cast("str", response.choices[0].message.content)
 
@@ -232,3 +240,20 @@ class OpenAIAgentAdapter:
             return {"changes": [], "category": failure.get("category", "unknown")}
         data: dict[str, Any] = cast("dict[str, Any]", raw)
         return data
+
+    # Convenience methods to match agent expectations
+    def plan_capture(self, system: str, user: str) -> str | None:
+        """Plan capture with custom prompts."""
+        return self._ask(system, user)
+
+    def generate_test(self, system: str, user: str) -> str | None:
+        """Generate test with custom prompts."""
+        return self._ask(system, user)
+
+    def diagnose_with_prompts(self, system: str, user: str) -> str | None:
+        """Diagnose with custom prompts."""
+        return self._ask(system, user)
+
+    def fix_test(self, system: str, user: str) -> str | None:
+        """Fix test with custom prompts."""
+        return self._ask(system, user)
