@@ -344,7 +344,7 @@ pytest==8.4.1
     #   pytest-xdist
 pytest-cov==7.0.0
     # via testproject (pyproject.toml)
-pytest-mock==3.14.1
+pytest-mock==3.15.1
     # via testproject (pyproject.toml)
 pytest-xdist==3.8.0
     # via testproject (pyproject.toml)
