@@ -330,7 +330,7 @@ pygments==2.19.2
     #   sphinx
 pymdown-extensions==10.16
     # via mkdocs-material
-pyparsing==3.2.3
+pyparsing==3.2.5
     # via pip-requirements-parser
 pyproject-hooks==1.2.0
     # via pdm
