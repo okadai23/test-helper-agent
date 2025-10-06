@@ -431,7 +431,7 @@ rpds-py==0.27.1
     # via
     #   jsonschema
     #   referencing
-ruff==0.13.0
+ruff==0.13.3
     # via clean-interfaces (pyproject.toml)
 scalene==1.5.54
     # via clean-interfaces (pyproject.toml)
